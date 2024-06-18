@@ -1,9 +1,10 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import Home from './components/Home'
-import ChooseUser from './components/ChooseUser'
+import Home from './pages/Home'
+import ChooseUser from './pages/ChooseUser'
 import AdminSignIn from './components/AdminSignin'
 import TeacherSignIn from './components/TeacherSignin'
 import StudentSignIn from './components/StudentSignin'
+import AdminRegister from './components/AdminRegister'
 
 import AdminDashboard from './pages/Admin/Dashboard'
 import Announcement from './pages/Admin/Announcement'
@@ -48,7 +49,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/choose-user" element={<ChooseUser />} />
+        <Route path="/choose" element={<ChooseUser />} />
+        <Route path="/admin/register" element={<AdminRegister />} />
 
         <Route path="/admin/signin" element={<AdminSignIn />} />
         <Route path="/teacher/signin" element={<TeacherSignIn />} />

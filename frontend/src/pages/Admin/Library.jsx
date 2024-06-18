@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const Library = () => {
   const [books, setBooks] = useState([]);
+  const [isOpen, setIsOpen] = useState(true); // State for sidebar toggle
 
   useEffect(() => {
     fetchBooks();
@@ -11,7 +12,7 @@ const Library = () => {
 
   const fetchBooks = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/v1/library/getall');
+      const response = await axios.get('http://localhost:3000/api/v1/library/getall');
       setBooks(response.data.books);
     } catch (error) {
       console.error('Error fetching books:', error);
@@ -20,7 +21,7 @@ const Library = () => {
 
   const addBook = async (book) => {
     try {
-      const response = await axios.post('http://localhost:4000/api/v1/library', {
+      const response = await axios.post('http://localhost:3000/api/v1/library', {
         bookname: book.title,
         author: book.author,
       });
@@ -31,17 +32,19 @@ const Library = () => {
   };
 
   const handleBookPick = async (bookId, studentId) => {
-    // Implement logic to record when a student picks a book
   };
 
   const handleBookReturn = async (bookId, studentId) => {
-    // Implement logic to mark when a student returns a book
+  };
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
   };
 
   return (
-    <div className="flex">
-      <Sidebar />
-      <div className="flex-1 p-5 ml-64">
+    <div className="flex min-h-screen bg-gray-100">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className={`flex-1 p-5 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
         <h1 className="text-2xl mb-5">Library Management</h1>
         <form
           onSubmit={(e) => {

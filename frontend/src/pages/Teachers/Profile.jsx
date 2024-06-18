@@ -1,4 +1,3 @@
-// TeacherProfileSection.js (using Tailwind CSS)
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 
@@ -10,11 +9,16 @@ const TeacherProfileSection = () => {
     address: '123 Main St, City, Country',
     qualification: 'Master of Education',
   });
+  const [isOpen, setIsOpen] = useState(true);
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
 
   return (
-    <div className="flex">
-      <Sidebar />
-      <div className="flex-1 p-5 ml-64">
+    <div className="flex min-h-screen bg-gray-100">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
         <h1 className="text-2xl mb-5">Profile Details</h1>
         <div className="max-w-md">
           <div className="mb-4">

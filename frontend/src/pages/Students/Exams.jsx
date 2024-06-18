@@ -1,10 +1,15 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import Sidebar from './Sidebar';
 import { Bar } from 'react-chartjs-2';
 import Chart from 'chart.js/auto';
 
 const Exams = () => {
   const chartRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(true);
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
 
   // Sample exam results data
   const examResultsData = {
@@ -40,11 +45,9 @@ const Exams = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row md:pl-[240px]">
-      <div className="flex-shrink-0 w-full md:w-[250px]">
-        <Sidebar />
-      </div>
-      <div className="flex-1 p-5">
+    <div className="flex min-h-screen bg-gray-100">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
         <h1 className="text-2xl mb-5">Exam Results</h1>
         <div className="bg-white rounded-lg shadow-md p-5 mb-5">
           {examResultsData.subjects.map((subject, index) => (

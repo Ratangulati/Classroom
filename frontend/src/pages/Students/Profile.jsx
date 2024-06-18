@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 
 const ProfileSection = () => {
-  // Sample student profile data
   const studentProfile = {
     name: 'John Doe',
     age: 18,
@@ -10,13 +9,16 @@ const ProfileSection = () => {
     school: 'Example High School',
     email: 'john.doe@example.com'
   };
+  const [isOpen, setIsOpen] = useState(true);
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
 
   return (
-    <div className="flex">
-      <div className="flex-shrink-0 w-full md:w-[250px]">
-        <Sidebar />
-      </div>
-      <div className="flex-1 p-5">
+    <div className="flex min-h-screen bg-gray-100">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
         <h1 className="text-2xl mb-5">Profile</h1>
         <div>
           <div className="mb-5">

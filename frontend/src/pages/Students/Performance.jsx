@@ -1,13 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import { Line } from 'react-chartjs-2';
 
 const PerformanceSection = () => {
-  // Sample performance data
   const performanceData = {
     months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
     marks: [80, 85, 90, 88, 92, 85], // Sample marks for each month
     totalMarks: 520 // Sample total marks for the year
+  };
+  const [isOpen, setIsOpen] = useState(true);
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
   };
 
   // Line chart data
@@ -26,11 +30,9 @@ const PerformanceSection = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row">
-      <div className="flex-shrink-0 w-full md:w-[250px]">
-        <Sidebar />
-      </div>
-      <div className="flex-1 p-5">
+    <div className="flex min-h-screen bg-gray-100">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
         <h2 className="text-2xl mb-5">Performance</h2>
         <div className="bg-white rounded-lg shadow-lg p-5">
           <div className="mb-5">

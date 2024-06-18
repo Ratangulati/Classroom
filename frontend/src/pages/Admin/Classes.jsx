@@ -1,40 +1,45 @@
-// import React from 'react';
-// import Sidebar from './Sidebar';
-
-// const Classes = () => {
-//   return (
-//     <div className="flex">
-//       <Sidebar />
-//       <div className="flex-1 ml-64 p-5"> 
-//         <div>
-//           <h2 className="text-2xl mb-5">Classes</h2>
-//           <form className="mb-5 flex">
-//             <input type="text" placeholder="Enter Class Name" className="p-2 mr-3 border border-gray-300 rounded-md" />
-//             <button type="submit" className="p-2 bg-blue-500 text-white rounded-md">Add Class</button>
-//           </form>
-//           <ul className="list-none p-0">
-//             <li className="bg-white rounded-lg p-5 mb-3 shadow-md">Class Item Content</li>
-//             {/* Add more ClassItem components as needed */}
-//           </ul>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Classes;
-
-
-// Classes.js
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios'
 import Sidebar from './Sidebar';
 
 const Classes = () => {
   const [isOpen, setIsOpen] = useState(true);
+  const [newClassName, setNewClassName] = useState('')
+  const [classes, setClasses] = useState([])
+
+  useEffect(() => {
+    fetchClasses()
+  }, []);
+
+  const fetchClasses = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/api/v1/class/getall');
+      if (response.data && Array.isArray(response.data.classes)) {
+        setClasses(response.data.classes);
+      } else {
+        console.log("Error while fetching classes: Invalid Data")
+      }
+    } catch (error) {
+      console.error("Error fetching events: ", error);
+    }
+  }
+
+  const handleAddClass = async (e) => {
+    e.preventDefault();
+    if (newClassName.trim() !== '') {
+      try {
+        const response = await axios.post('http://localhost:3000/api/v1/class', { grade: newClassName });
+        setClasses((prevClasses) => [...prevClasses, response.data.class]);
+        setNewClassName('');
+      } catch (error) {
+        console.error('Error adding class:', error);
+      }
+    }
+  };
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
-  };
+  }; 
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -43,16 +48,19 @@ const Classes = () => {
         <h1 className="text-3xl font-bold mb-8">Classes</h1>
         <div className="bg-white shadow-lg rounded-lg p-8 mb-8">
           <h2 className="text-2xl font-bold mb-4">Add New Class</h2>
-          <form className="mb-4">
+          <form onSubmit={handleAddClass} className="mb-4" >
             <div className="mb-6">
               <label htmlFor="className" className="block text-gray-700 font-bold mb-2">
                 Class Name
               </label>
               <input
                 type="text"
-                id="className"
                 className="w-full px-4 py-3 rounded-lg shadow-sm focus:outline-none focus:shadow-outline-blue"
                 placeholder="Enter class name"
+                value={newClassName}
+                onChange={(e) => {
+                  setNewClassName(e.target.value)
+                }}
                 required
               />
             </div>
@@ -67,8 +75,11 @@ const Classes = () => {
         <div className="bg-white shadow-lg rounded-lg p-8">
           <h2 className="text-2xl font-bold mb-4">Classes</h2>
           <ul className="space-y-4">
-            <li className="border-b pb-4">Class Item Content</li>
-            {/* Add more ClassItem components as needed */}
+            {classes.map((classItem, index) => (
+              <li key={index} className="border-b pb-4">
+                {classItem.grade}
+              </li>
+            ))}
           </ul>
         </div>
       </div>

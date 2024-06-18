@@ -1,12 +1,16 @@
-// EventSection.js (using Tailwind CSS)
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
 
 const EventSection = () => {
+  const [isOpen, setIsOpen] = useState(true);
   const [events, setEvents] = useState([]);
   const [newEvent, setNewEvent] = useState('');
   const [error, setError] = useState(null);
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
 
   // Function to fetch events from the backend
   const fetchEvents = async () => {
@@ -43,9 +47,9 @@ const EventSection = () => {
   };
 
   return (
-    <div className="flex">
-      <Sidebar />
-      <div className="flex-1 p-5 ml-64">
+    <div className="flex min-h-screen bg-gray-100">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
         <h1 className="text-2xl">Events & Calendar</h1>
         <div className="mt-4">Current Time: {new Date().toLocaleString()}</div>
         <div className="border border-gray-300 rounded-lg p-4 mt-4">

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 
 const SettingsProfile = () => {
+  const [isOpen, setIsOpen] = useState(true);
   const teacherInfo = {
     name: 'John Doe',
     email: 'johndoe@example.com',
@@ -10,10 +11,14 @@ const SettingsProfile = () => {
     qualification: 'Master of Education',
   };
 
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-100">
-      <Sidebar />
-      <div className="flex-1 p-5 ml-64">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
         <h1 className="text-3xl font-bold mb-8">Profile Details</h1>
         <div className="bg-white shadow-lg rounded-lg p-8">
           <div className="mb-6">

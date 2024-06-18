@@ -2,13 +2,8 @@ import React, { useState } from 'react';
 import { BsGraphUp, BsFileText, BsBook, BsGraphDown, BsCalendar, BsChatDots, BsGear, BsCalendarEvent } from 'react-icons/bs';
 import { Link } from 'react-router-dom';
 
-const StudentSidebar = () => {
-  const [isOpen, setIsOpen] = useState(true);
-
-  const toggleStudent = () => {
-    setIsOpen(!isOpen);
-  };
-
+const StudentSidebar = ({ isOpen, toggleSidebar }) => {
+ 
   const SidebarNavItem = ({ icon, to, text, isOpen }) => {
     return (
       <li className="flex items-center p-3 border-b border-blue-800 hover:bg-blue-700 transition-colors duration-300">
@@ -34,9 +29,9 @@ const StudentSidebar = () => {
         <SidebarNavItem icon={<BsGraphDown />} to="/student/performance" text="Performance" isOpen={isOpen} />
         <SidebarNavItem icon={<BsGear />} to="/student/profile" text="Profile" isOpen={isOpen} />
       </ul>
-      {/* <div onClick={toggleStudent} className="absolute top-5 right-0 w-8 h-8 bg-[#34495e] rounded-full flex items-center justify-center cursor-pointer">
+      <div onClick={toggleSidebar} className="absolute top-5 right-0 w-8 h-8 bg-[#34495e] rounded-full flex items-center justify-center cursor-pointer">
         <span className={`text-white text-xl transform transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}>▲</span>
-      </div> */}
+      </div>
     </div>
   );
 };

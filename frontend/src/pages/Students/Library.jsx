@@ -4,6 +4,11 @@ import axios from 'axios';
 
 const LibrarySection = () => {
   const [books, setBooks] = useState([]);
+  const [isOpen, setIsOpen] = useState(true);
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
 
   useEffect(() => {
     fetchBooks();
@@ -11,7 +16,7 @@ const LibrarySection = () => {
 
   const fetchBooks = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/v1/library/getall');
+      const response = await axios.get('http://localhost:3000/api/v1/library/getall');
       setBooks(response.data.books);
     } catch (error) {
       console.error('Error fetching books:', error);
@@ -24,11 +29,9 @@ const LibrarySection = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row md:pl-[240px]">
-      <div className="flex-shrink-0 w-full md:w-[250px]">
-        <Sidebar />
-      </div>
-      <div className="flex-1 p-5">
+    <div className="flex min-h-screen bg-gray-100">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
         <h1 className="text-2xl mb-5">Library</h1>
         <ul className="list-none p-0">
           {books.map((book) => (

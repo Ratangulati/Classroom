@@ -4,6 +4,11 @@ import axios from 'axios';
 
 const AnnouncementStudent = () => {
   const [announcements, setAnnouncements] = useState([]);
+  const [isOpen, setIsOpen] = useState(true);
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
 
   useEffect(() => {
     fetchAnnouncements();
@@ -11,7 +16,7 @@ const AnnouncementStudent = () => {
 
   const fetchAnnouncements = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/v1/announcements/getall');
+      const response = await axios.get('http://localhost:3000/api/v1/announcements/getall');
       setAnnouncements(response.data.announcements);
     } catch (error) {
       console.error('Error fetching announcements:', error);
@@ -19,11 +24,9 @@ const AnnouncementStudent = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row md:pl-[240px]">
-      <div className="flex-shrink-0 w-full md:w-[250px]">
-        <Sidebar />
-      </div>
-      <div className="flex-1 p-5">
+    <div className="flex min-h-screen bg-gray-100">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
         <h1 className="text-2xl mb-5">Announcements</h1>
         <ul className="list-none p-0">
           {announcements.map((announcement) => (

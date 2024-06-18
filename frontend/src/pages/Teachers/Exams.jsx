@@ -1,4 +1,3 @@
-// CheckExamSection.js (using Tailwind CSS)
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
@@ -9,14 +8,19 @@ const CheckExamSection = () => {
   const [registrationNumber, setRegistrationNumber] = useState('');
   const [className, setClassName] = useState('');
   const [marks, setMarks] = useState('');
+  const [isOpen, setIsOpen] = useState(true);
 
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+  
   useEffect(() => {
-    fetchExams(); // Fetch exams on component mount
+    fetchExams(); 
   }, []);
 
   const fetchExams = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/v1/exam');
+      const response = await axios.get('http://localhost:3000/api/v1/exam');
       setExamData(response.data);
     } catch (error) {
       console.error('Error fetching exams:', error);
@@ -27,7 +31,7 @@ const CheckExamSection = () => {
     e.preventDefault();
     const newExam = { name, registrationNumber, className, marks: parseInt(marks) };
     try {
-      const response = await axios.post('http://localhost:4000/api/v1/exam', newExam);
+      const response = await axios.post('http://localhost:3000/api/v1/exam', newExam);
       setExamData([...examData, response.data]);
       setName('');
       setRegistrationNumber('');
@@ -47,9 +51,9 @@ const CheckExamSection = () => {
   };
 
   return (
-    <div className="flex">
-      <Sidebar />
-      <div className="flex-1 p-5 ml-64">
+    <div className="flex min-h-screen bg-gray-100">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
         <h1 className="text-2xl">Exam Details</h1>
         <form onSubmit={handleAddExam} className="max-w-md mt-4">
           <label className="block mb-2">Name:</label>

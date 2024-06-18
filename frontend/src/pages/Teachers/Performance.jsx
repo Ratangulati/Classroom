@@ -1,9 +1,12 @@
-// CheckPerformanceSection.js (using Tailwind CSS)
-import React from 'react';
+import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 
 const CheckPerformanceSection = () => {
-  // Sample data for school performance
+  const [isOpen, setIsOpen] = useState(true);
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
   const schoolPerformanceData = {
     averageScore: 85,
     totalStudents: 100,
@@ -17,9 +20,9 @@ const CheckPerformanceSection = () => {
   ];
 
   return (
-    <div className="flex">
-      <Sidebar />
-      <div className="flex-1 p-5 ml-64">
+    <div className="flex min-h-screen bg-gray-100">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
         <div className="p-5">
           <h2 className="text-2xl mb-5">School Performance</h2>
           <div className="bg-white rounded-lg shadow-md p-4 mb-5">

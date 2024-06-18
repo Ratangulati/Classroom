@@ -4,6 +4,11 @@ import axios from 'axios';
 
 const StudentSection = () => {
   const [students, setStudents] = useState([]);
+  const [isOpen, setIsOpen] = useState(true);
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
 
   useEffect(() => {
     fetchStudents();
@@ -19,9 +24,9 @@ const StudentSection = () => {
   };
 
   return (
-    <div className="flex">
-      <Sidebar />
-      <div className="flex-1 p-5 ml-64">
+    <div className="flex min-h-screen bg-gray-100">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
         <div className="p-4">
           <h2 className="text-2xl font-bold mb-4">Students</h2>
           <ul className="divide-y divide-gray-200">

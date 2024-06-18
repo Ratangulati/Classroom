@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 
 const StudentAttendance = () => {
@@ -10,13 +10,16 @@ const StudentAttendance = () => {
     { id: 4, date: '2024-05-04', present: true },
     { id: 5, date: '2024-05-05', present: true }
   ];
+  const [isOpen, setIsOpen] = useState(true);
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
 
   return (
-    <div className="flex flex-col md:flex-row md:pl-[240px]">
-      <div className="flex-shrink-0 w-full md:w-[250px]">
-        <Sidebar />
-      </div>
-      <div className="flex-1 p-5">
+    <div className="flex min-h-screen bg-gray-100">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
         <h2 className="text-2xl mb-5">Attendance</h2>
         <ul className="list-none p-0">
           {attendance.map(({ id, date, present }) => (

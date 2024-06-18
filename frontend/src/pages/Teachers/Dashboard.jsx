@@ -1,13 +1,18 @@
 // TeacherDashboard.js (using Tailwind CSS)
-import React from 'react';
+import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 
 const TeacherDashboard = () => {
-  return (
-    <div className="flex">
-      <Sidebar />
+  const [isOpen, setIsOpen] = useState(true);
 
-      <div className="flex-1 p-5 ml-64">
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+
+  return (
+    <div className="flex min-h-screen bg-gray-100">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
         <section className="mb-8">
           <h2 className="text-2xl mb-4">Overview</h2>
           <div className="flex gap-4">

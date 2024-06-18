@@ -1,11 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 
 const StudentDashboard = () => {
+  const [isOpen, setIsOpen] = useState(true);
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
-    <div className="flex">
-      <Sidebar />
-      <div className="flex-1 p-5 ml-[240px]">
+    <div className="flex min-h-screen bg-gray-100">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
         <section className="mb-10">
           <h2 className="text-2xl mb-5 text-gray-800">Overview</h2>
           <div className="flex gap-5">
