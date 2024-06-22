@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import validator from "validator";
 
 const assignmentSchema = new mongoose.Schema({
   title: {
@@ -10,8 +9,9 @@ const assignmentSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  grade: {
-    type: String,
+  class: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Class',
     required: true
   },
   deadline: {

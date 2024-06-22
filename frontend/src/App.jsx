@@ -7,18 +7,20 @@ import StudentSignIn from './components/StudentSignin'
 import AdminRegister from './components/AdminRegister'
 
 import AdminDashboard from './pages/Admin/Dashboard'
-import Announcement from './pages/Admin/Announcement'
-import Attendance from './pages/Admin/Attendance'
 import Classes from './pages/Admin/Classes'
-import EventCalender from './pages/Admin/EventCalender'
 import Exam from './pages/Admin/Exam'
+import Events from './components/Events'
 import Library from './pages/Admin/Library'
 import SettingsProfile from './pages/Admin/SettingsProfile'
 import Sidebar from './pages/Admin/Sidebar'
 import Students from './pages/Admin/Students'
 import Teachers from './pages/Admin/Teachers'
-import Performance from './pages/Admin/Performance'
-import Assignment from './pages/Admin/Assignment'
+import AddAnnouncement from './pages/Admin/Add.../AddAnouncement'
+import AddClass from './pages/Admin/Add.../AddClass'
+import AddStudent from './pages/Admin/Add.../AddStudent'
+import AddTeacher from './pages/Admin/Add.../AddTeacher'
+import AddEvent from './pages/Admin/Add.../AddEvent'
+
 
 import StudentDashboard from './pages/Students/Dashboard'
 import AnnouncementStudent from './pages/Students/Announcements'
@@ -29,18 +31,24 @@ import LibrarySection from './pages/Students/Library'
 import PerformanceSection from './pages/Students/Performance'
 import ProfileSection from './pages/Students/Profile'
 import StudentSidebar from './pages/Students/Sidebar'
+
 import TeacherDashboard from './pages/Teachers/Dashboard'
-import AnnouncementTeacher from './pages/Teachers/Announcement'
-import TeacherAssignments from './pages/Teachers/Assignment'
-import CheckAttendanceSection from './pages/Teachers/Attendance'
+import TeacherAssignments from './pages/Teachers/Assignments'
 import ClassSection from './pages/Teachers/Classes'
-import EventSection from './pages/Teachers/Events'
-import CheckExamSection from './pages/Teachers/Exams'
-import CheckPerformanceSection from './pages/Teachers/Performance'
 import TeacherProfileSection from './pages/Teachers/Profile'
 import TeacherSidebar from './pages/Teachers/Sidebar'
-import StudentSection from './pages/Teachers/Students'
-import TeacherSection from './pages/Teachers/Teachers'
+import ClassDetails from './pages/Admin/ClassDetails'
+import AddSubject from './pages/Admin/Add.../AddSubject'
+import StudentDetails from './pages/Admin/StudentDetails'
+import TeacherDetails from './pages/Admin/TeacherDetail'
+import TeacherClassDetails from './pages/Teachers/ClassDetails'
+import CreateAssignment from './pages/Teachers/Add.../CreateAssignment'
+import Assignments from './pages/Teachers/Assignments'
+import NoticeList from './pages/Teachers/Notice'
+import CreateNotice from './pages/Teachers/Add.../CreateNotice'
+
+
+
 
 
 function App() {
@@ -60,18 +68,25 @@ function App() {
         <Route path="/student/dashboard" element={<StudentDashboard />} />
         <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
 
-        <Route path="/admin/announcement" element={<Announcement />} />
-        <Route path="/admin/attendance" element={<Attendance />} />
         <Route path="/admin/classes" element={<Classes />} />
-        <Route path="/admin/events" element={<EventCalender/>} /> 
+        <Route path="/class/:classId" element={<ClassDetails />} />
+        <Route path="/admin/events" element={<Events/>} /> 
         <Route path="/admin/exams" element={<Exam />} />
         <Route path="/admin/library" element={<Library />} />
-        <Route path="/admin/performance" element={<Performance />} />
         <Route path="/admin/settings" element={<SettingsProfile />} />
         <Route path="/admin/sidebar" element={<Sidebar />} />
         <Route path="/admin/students" element={<Students />} />
+        <Route path="/admin/students/:studentId" element={<StudentDetails />} />
         <Route path="/admin/teachers" element={<Teachers />} /> 
-        <Route path="/admin/assignments" element={<Assignment />} />
+        <Route path="/admin/teachers/:teacherId" element={<TeacherDetails />} />
+        <Route path="/create-class" element={<AddClass />} />
+        <Route path="/create-announcement" element={<AddAnnouncement />} />
+        <Route path="/class/:classId/add-student" element={<AddStudent />} />
+        <Route path="/class/:classId/add-teacher" element={<AddTeacher />} />
+        <Route path="/class/:classId/add-subject" element={<AddSubject />} />
+        <Route path="/create-event" element={<AddEvent />} />
+
+
 
         <Route path="/student/announcement" element={<AnnouncementStudent />} />
         <Route path="/student/assignments" element={<StudentAssignments />} />
@@ -82,17 +97,16 @@ function App() {
         <Route path="/student/profile" element={<ProfileSection />} />
         <Route path="/student/sidebar" element={<StudentSidebar />} />
 
-        <Route path="/teacher/announcement" element={<AnnouncementTeacher />} />
         <Route path="/teacher/assignments" element={<TeacherAssignments />} />
-        <Route path="/teacher/attendance" element={<CheckAttendanceSection />} />
         <Route path="/teacher/classes" element={<ClassSection />} />
-        <Route path="/teacher/events" element={<EventSection/>} /> 
-        <Route path="/teacher/exams" element={<CheckExamSection />} />
-        <Route path="/teacher/performance" element={<CheckPerformanceSection />} />
+        <Route path="/teacher/create-assignment/:classId" element={<CreateAssignment />} />
+        <Route path="/teacher/assignments" element={<Assignments />} />
+        <Route path="/teacher/class/:classId" element={<TeacherClassDetails />} />
+        <Route path="/teacher/notices" element={<NoticeList/>} /> 
+        <Route path="/teacher/create-notice/:classId" element={<CreateNotice/>} /> 
         <Route path="/teacher/profile" element={<TeacherProfileSection />} />
         <Route path="/teacher/sidebar" element={<TeacherSidebar />} />
-        <Route path="/teacher/students" element={<StudentSection />} />
-        <Route path="/teacher/teachers" element={<TeacherSection />} /> 
+
 
       </Routes>
     </BrowserRouter>

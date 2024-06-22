@@ -1,16 +1,26 @@
 import mongoose from "mongoose";
 
 const attendanceSchema = new mongoose.Schema({
-  student: {
+  class: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Student',
+    ref: 'Class',
     required: true
   },
-  status: {
-    type: String,
-    enum: ['Present', 'Absent', 'Absent with apology'],
+  date: {
+    type: Date,
     required: true
-  }
+  },
+  attendanceRecords: [{
+    student: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Student',
+      required: true
+    },
+    present: {
+      type: Boolean,
+      required: true
+    }
+  }]
 });
 
 export default mongoose.model('Attendance', attendanceSchema);

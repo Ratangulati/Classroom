@@ -1,16 +1,29 @@
 import mongoose from "mongoose";
-import validator from "validator";
 
 const classSchema = new mongoose.Schema({
-  grade: {
+  className: {
     type: String,
-    required: true
+    required: true,
   },
+  students: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Student',
+  }],
+  teachers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Teacher',
+  }],
+  subjects: [{
+    name: {
+      type: String,
+      required: true,
+    },
+    teacher: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Teacher',
+      required: true,
+    },
+  }]
 });
 
-
-export const Class = mongoose.model('Classes', classSchema);
-
-
-
-
+export const Class = mongoose.model('Class', classSchema);

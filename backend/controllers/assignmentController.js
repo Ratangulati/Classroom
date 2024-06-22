@@ -1,27 +1,26 @@
 import { Assignment } from "../models/assignmentSchema.js";
-import { handleValidationError } from "../middlewares/errorHandler.js";
 
 export const createAssignment = async (req, res, next) => {
+  const { title, description, classId, deadline } = req.body;
   console.log(req.body);
-  const { title, description, grade, deadline } = req.body;
   try {
-    if (!title || !description || !grade || !deadline) {
-      handleValidationError("Please Fill Full Form!", 400);
+    if (!title || !description || !classId || !deadline) {
+      return res.status(400).json({ message: "Please fill out all fields" });
     }
-    const assignments = await Assignment.create({ title, description, grade, deadline });
+    const assignment = await Assignment.create({ title, description, class: classId, deadline });
     res.status(201).json({
       success: true,
       message: "Assignment Created!",
-      assignments
+      assignment
     });
   } catch (err) {
     next(err);
-  } 
+  }
 };
 
 export const getAllAssignments = async (req, res, next) => {
   try {
-    const assignments = await Assignment.find();
+    const assignments = await Assignment.find().populate('class'); 
     res.status(200).json({
       success: true,
       assignments,
@@ -29,4 +28,17 @@ export const getAllAssignments = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-}; 
+};
+
+export const deleteAssignment = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const assignment = await Assignment.findByIdAndDelete(id);
+    if (!assignment) {
+      return res.status(404).json({ success: false, message: "Assignment not found" });
+    }
+    res.status(200).json({ success: true, message: "Assignment deleted successfully" });
+  } catch (err) {
+    next(err);
+  }
+};

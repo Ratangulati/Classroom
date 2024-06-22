@@ -37,14 +37,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         <SidebarNavItem icon={<BsPeople />} to="/admin/classes" text="Classes" />
         <SidebarNavItem icon={<BsPeople />} to="/admin/students" text="Students" />
         <SidebarNavItem icon={<BsPerson />} to="/admin/teachers" text="Teachers" />
-        <SidebarNavItem icon={<BsFileText />} to="/admin/assignments" text="Assignments" />
         <SidebarNavItem icon={<BsBook />} to="/admin/exams" text="Exams" />
-        <SidebarNavItem icon={<BsGraphDown />} to="/admin/performance" text="Performance" />
-        <SidebarNavItem icon={<BsCalendar />} to="/admin/attendance" text="Attendance" />
         <SidebarNavItem icon={<BsBook />} to="/admin/library" text="Library" />
-        <SidebarNavItem icon={<BsChatDots />} to="/admin/announcement" text="Announcement" />
-        <SidebarNavItem icon={<BsCalendarEvent />} to="/admin/events" text="Events & Calendar" />
-        <SidebarNavItem icon={<BsGear />} to="/admin/settings" text="Settings & Profile" />
+        <SidebarNavItem icon={<BsGear />} to="/admin/settings" text="Profile" />
       </ul>
       <div
         className="absolute top-4 right-4 cursor-pointer bg-gray-700 text-white rounded-full p-2"

@@ -21,14 +21,13 @@ export const createAnnouncement = async (req, res, next) => {
 
 export const getAllAnnouncements = async (req, res, next) => {
   try {
-    const announcements = await Announcement.find();
+    const announcement = await Announcement.find();
+    console.log('Fetched Announcements:', announcement);
     res.status(200).json({
-    success: true,
-    announcements,
-  }); 
+      success: true,
+      announcement,
+    }); 
   } catch (err) {
     next(err);
   }
 };
-
-

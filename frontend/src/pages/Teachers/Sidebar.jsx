@@ -21,16 +21,10 @@ const TeacherSidebar = ({ isOpen, toggleSidebar }) => {
         </div>
         <ul className="list-none p-0">
           <SidebarNavItem icon={<BsGraphUp />} to="/teacher/dashboard" text="Dashboard" />
-          <SidebarNavItem icon={<BsChatDots />} to="/teacher/announcement" text="Announcement" />
-          <SidebarNavItem icon={<BsFileText />} to="/teacher/assignments" text="Assignments" />
-          <SidebarNavItem icon={<BsCalendar />} to="/teacher/attendance" text="Attendance" />
           <SidebarNavItem icon={<BsGear />} to="/teacher/classes" text="Classes" />
-          <SidebarNavItem icon={<BsGear />} to="/teacher/events" text="Events" />
-          <SidebarNavItem icon={<BsBook />} to="/teacher/exams" text="Exams" />
-          <SidebarNavItem icon={<BsGraphDown />} to="/teacher/performance" text="Performance" />
+          <SidebarNavItem icon={<BsFileText />} to="/teacher/assignments" text="Assignments" />
+          <SidebarNavItem icon={<BsGear />} to="/teacher/notices" text="Notices" />
           <SidebarNavItem icon={<BsGear />} to="/teacher/profile" text="Profile" />
-          <SidebarNavItem icon={<BsGear />} to="/teacher/students" text="Student" />
-          <SidebarNavItem icon={<BsGear />} to="/teacher/teachers" text="Teachers" />
         </ul>
         <div
         className="absolute top-4 right-4 cursor-pointer bg-gray-700 text-white rounded-full p-2"

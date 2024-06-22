@@ -16,4 +16,4 @@ const adminRegisterSchema = new mongoose.Schema({
   },
 });
 
-export const Admin = mongoose.model('Admin Register', adminRegisterSchema);
+export const Admin = mongoose.model("Admin", adminRegisterSchema);
