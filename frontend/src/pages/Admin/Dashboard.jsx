@@ -39,6 +39,8 @@ const AdminDashboard = () => {
         axios.get('http://localhost:3000/api/v1/teachers/getall'),
       ]);
 
+      console.log(classesResponse)
+
       setEvents(eventsResponse.data.events || []);
       setAnnouncements(announcementsResponse.data.announcement || []);
       setClasses(classesResponse.data.classes || []);

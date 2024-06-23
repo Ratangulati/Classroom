@@ -7,6 +7,7 @@ const StudentDetails = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [student, setStudent] = useState(null);
   const [error, setError] = useState(null);
+  const [classes, setClasses] = useState([]);
   const { studentId } = useParams();
   const navigate = useNavigate();
 
@@ -16,8 +17,17 @@ const StudentDetails = () => {
 
   const fetchStudentDetails = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/api/v1/students/${studentId}`);
-      setStudent(response.data.student);
+      const studentResponse = await axios.get(`http://localhost:3000/api/v1/students/${studentId}`);
+      setStudent(studentResponse.data.student);
+
+      const allClassesResponse = await axios.get('http://localhost:3000/api/v1/class/getall');
+      const allClasses = allClassesResponse.data.classes;
+
+      const filteredClasses = allClasses.filter(cls =>
+        cls.students.some(std => std.registrationNumber === studentResponse.data.student.registrationNumber)
+      );
+
+      setClasses(filteredClasses);
     } catch (error) {
       console.error('Error fetching student details:', error);
       setError('Error fetching student details');
@@ -42,7 +52,7 @@ const StudentDetails = () => {
     return <div>Error: {error}</div>;
   }
 
-  if (!student) {
+  if (!student || !classes.length) {
     return <div>Loading...</div>;
   }
 
@@ -54,12 +64,13 @@ const StudentDetails = () => {
           <h2 className="text-2xl font-bold mb-4">Student Details</h2>
           <p><strong>Name:</strong> {student.name}</p>
           <p><strong>Registration Number:</strong> {student.registrationNumber}</p>
-          <p><strong>Class:</strong> {student.class}</p>
+          <p><strong>Class Name:</strong> {classes.map(cls => cls.class).join(', ')}</p>
+          
           <div className=' mt-4'>
-          <Link to="/admin/students" className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200 mt-4 inline-block mr-4">
-            Back to Students List
-          </Link>
-          <button
+            <Link to="/admin/students" className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200 mt-4 inline-block mr-4">
+              Back to Students List
+            </Link>
+            <button
               onClick={handleDelete}
               className="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition duration-200"
             >

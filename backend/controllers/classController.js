@@ -3,6 +3,7 @@ import { Student } from "../models/studentSchema.js";
 import { Teacher } from "../models/teacherSchema.js";
 import { handleValidationError } from "../middlewares/errorHandler.js";
 
+
 export const createClass = async (req, res, next) => {
   const { class: className } = req.body;
   try {
@@ -61,39 +62,44 @@ export const getClassById = async (req, res, next) => {
 
 
 // Student
-export const addStudent = async (req, res, next) => {
-  const { classId } = req.params;
-  const { registrationNumber } = req.body;
+// export const addStudent = async (req, res, next) => {
+//   const { classId } = req.params;
+//   console.log('Received classId:', classId);
+//   const { registrationNumber } = req.body;
 
-  try {
-    const classDetails = await Class.findById(classId);
-    if (!classDetails) {
-      return res.status(404).json({ message: "Class not found" });
-    }
+//   if (!mongoose.Types.ObjectId.isValid(classId)) {
+//     return res.status(400).json({ message: "Invalid class ID" });
+//   }
 
-    const student = await Student.findOne({ registrationNumber });
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
+//   try {
+//     const classDetails = await Class.findById(classId);
+//     if (!classDetails) {
+//       return res.status(404).json({ message: "Class not found" });
+//     }
 
-    if (classDetails.students.includes(student._id)) {
-      return res.status(400).json({ message: "Student already exists in class" });
-    }
-    classDetails.students.push(student._id);
-    await classDetails.save();
+//     const student = await Student.findOne({ registrationNumber });
+//     if (!student) {
+//       return res.status(404).json({ message: "Student not found" });
+//     }
 
-    const updatedClassDetails = await Class.findById(classId)
-      .populate('students')
-      .populate({
-        path: 'subjects',
-        populate: { path: 'teacher', model: 'Teacher' }
-      });
+//     if (classDetails.students.includes(student._id)) {
+//       return res.status(400).json({ message: "Student already exists in class" });
+//     }
+//     classDetails.students.push(student._id);
+//     await classDetails.save();
 
-    res.status(200).json({ success: true, message: "Student added", class: updatedClassDetails });
-  } catch (error) {
-    next(error);
-  }
-};
+//     const updatedClassDetails = await Class.findById(classId)
+//       .populate('students')
+//       .populate({
+//         path: 'subjects',
+//         populate: { path: 'teacher', model: 'Teacher' }
+//       });
+
+//     res.status(200).json({ success: true, message: "Student added", class: updatedClassDetails });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
 
 export const deleteStudent = async (req, res, next) => {
   const { classId, studentId } = req.params;

@@ -7,7 +7,7 @@ const AddTeacher = () => {
     name: "",
     email: "",
     subject: "",
-    password: "", // Add password field
+    password: "", 
   });
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ const AddTeacher = () => {
       newTeacher.name.trim() === "" ||
       newTeacher.email.trim() === "" ||
       newTeacher.subject.trim() === "" ||
-      newTeacher.password.trim() === "" // Check if password is filled
+      newTeacher.password.trim() === "" 
     ) {
       setErrorMessage("Please fill out all fields.");
       return;

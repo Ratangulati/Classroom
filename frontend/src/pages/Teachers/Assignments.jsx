@@ -8,7 +8,7 @@ import { FaTrash } from 'react-icons/fa';
 const Assignments = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [assignments, setAssignments] = useState([]);
-  const { classId } = useParams();
+  const { classId } = useParams(); 
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -20,7 +20,11 @@ const Assignments = () => {
 
   const fetchAssignments = async () => {
     try {
+      const token = localStorage.getItem('token'); 
       const response = await axios.get(`http://localhost:3000/api/v1/assignments/getall`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         params: { classId }
       });
       console.log('Assignments response:', response.data);
@@ -32,9 +36,13 @@ const Assignments = () => {
 
   const handleDeleteAssignment = async (assignmentId) => {
     try {
-      const response = await axios.delete(`http://localhost:3000/api/v1/assignments/${assignmentId}`);
+      const token = localStorage.getItem('token'); 
+      const response = await axios.delete(`http://localhost:3000/api/v1/assignments/${assignmentId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       console.log('Assignment deleted:', response.data);
-      // After deletion, fetch assignments again to update the list
       fetchAssignments();
     } catch (error) {
       console.error('Error deleting assignment:', error);

@@ -10,13 +10,13 @@ const studentSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  class: {
-    type: String,
-    required: true,
-  },
   password: {
     type: String,
     required: true,
+  },
+  class: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Class',
   },
 });
 

@@ -9,6 +9,7 @@ const Students = () => {
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  
 
   useEffect(() => {
     fetchStudents();
@@ -18,7 +19,7 @@ const Students = () => {
     try {
       const response = await axios.get('http://localhost:3000/api/v1/students/getall');
       setStudents(response.data.students);
-      setFilteredStudents(response.data.students); // Initialize filtered students
+      setFilteredStudents(response.data.students);
     } catch (error) {
       console.error('Error fetching students:', error);
       setError('Error fetching students');
@@ -54,10 +55,10 @@ const Students = () => {
             className="p-2 border border-gray-300 rounded-md flex-1 mr-4"
           />
           <Link
-            to="/class/:classId/add-student"
+            to="/admin/student/create"
             className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200"
           >
-            Add Student
+            Create Student
           </Link>
         </div>
         <div className="bg-white shadow-lg rounded-lg p-8 mb-8">
@@ -69,7 +70,7 @@ const Students = () => {
               {filteredStudents.map((student) => (
                 <li key={student._id} className="bg-white rounded-lg p-5 mb-3 shadow-md flex justify-between items-center">
                   <div>
-                    {student.name} - {student.registrationNumber} - {student.class}
+                    <strong>{student.name}</strong>: {student.registrationNumber}
                   </div>
                   <Link
                     to={`/admin/students/${student._id}`}

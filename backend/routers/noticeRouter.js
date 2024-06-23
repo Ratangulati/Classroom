@@ -1,10 +1,11 @@
 import express from "express";
-import { createNotice, getAllNotices, deleteNotice } from "../controllers/noticeController.js";
+import { createNotice, getAllNotices, deleteNotice, getStudentNotices } from "../controllers/noticeController.js";
 
 const router = express.Router();
 
-router.post("/", createNotice);
+router.post("/:classId", createNotice);
 router.get("/getall", getAllNotices);
 router.delete("/:id", deleteNotice);
+router.get("/student/:classId", getStudentNotices);
 
 export default router;

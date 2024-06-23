@@ -69,7 +69,7 @@ const TeacherDashboard = () => {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl mb-4"><Announcement announcements={announcements} role="teacher" /></h2>
+          <h2 className="text-2xl mb-4"><Announcement announcements={announcements}/></h2>
           {/* Placeholder for recent activity list */}
         </section>
 

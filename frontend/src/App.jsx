@@ -26,9 +26,7 @@ import StudentDashboard from './pages/Students/Dashboard'
 import AnnouncementStudent from './pages/Students/Announcements'
 import StudentAssignments from './pages/Students/Assignments'
 import StudentAttendance from './pages/Students/Attendance'
-import Exams from './pages/Students/Exams'
 import LibrarySection from './pages/Students/Library'
-import PerformanceSection from './pages/Students/Performance'
 import ProfileSection from './pages/Students/Profile'
 import StudentSidebar from './pages/Students/Sidebar'
 
@@ -46,6 +44,7 @@ import CreateAssignment from './pages/Teachers/Add.../CreateAssignment'
 import Assignments from './pages/Teachers/Assignments'
 import NoticeList from './pages/Teachers/Notice'
 import CreateNotice from './pages/Teachers/Add.../CreateNotice'
+import StudentNoticeList from './pages/Students/Notices'
 
 
 
@@ -77,11 +76,12 @@ function App() {
         <Route path="/admin/sidebar" element={<Sidebar />} />
         <Route path="/admin/students" element={<Students />} />
         <Route path="/admin/students/:studentId" element={<StudentDetails />} />
+        <Route path="/admin/student/create" element={<AddStudent />} />
         <Route path="/admin/teachers" element={<Teachers />} /> 
         <Route path="/admin/teachers/:teacherId" element={<TeacherDetails />} />
         <Route path="/create-class" element={<AddClass />} />
         <Route path="/create-announcement" element={<AddAnnouncement />} />
-        <Route path="/class/:classId/add-student" element={<AddStudent />} />
+        {/* <Route path="/class/add-student/:classId" element={<AddStudent />} /> */}
         <Route path="/class/:classId/add-teacher" element={<AddTeacher />} />
         <Route path="/class/:classId/add-subject" element={<AddSubject />} />
         <Route path="/create-event" element={<AddEvent />} />
@@ -89,11 +89,10 @@ function App() {
 
 
         <Route path="/student/announcement" element={<AnnouncementStudent />} />
+        <Route path="/student/notices" element={<StudentNoticeList />} />
         <Route path="/student/assignments" element={<StudentAssignments />} />
         <Route path="/student/attendance" element={<StudentAttendance />} />
-        <Route path="/student/exams" element={<Exams />} />
         <Route path="/student/library" element={<LibrarySection />} />
-        <Route path="/student/performance" element={<PerformanceSection />} />
         <Route path="/student/profile" element={<ProfileSection />} />
         <Route path="/student/sidebar" element={<StudentSidebar />} />
 

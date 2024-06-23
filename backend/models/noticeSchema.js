@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const noticeSchema = new mongoose.Schema({
   title: {
@@ -11,15 +11,17 @@ const noticeSchema = new mongoose.Schema({
   },
   class: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Class",
+    ref: 'Class',
     required: true,
   },
+  students: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Student',
+  }],
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
 
-export const Notice = mongoose.model('NNoticeotice', noticeSchema);
-
-
+export const Notice = mongoose.model('Notice', noticeSchema);

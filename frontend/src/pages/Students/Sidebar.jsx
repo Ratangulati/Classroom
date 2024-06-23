@@ -21,12 +21,10 @@ const StudentSidebar = ({ isOpen, toggleSidebar }) => {
       </div>
       <ul className="list-none p-0">
         <SidebarNavItem icon={<BsGraphUp />} to="/student/dashboard" text="Dashboard" isOpen={isOpen} />
-        <SidebarNavItem icon={<BsChatDots />} to="/student/announcement" text="Announcement" isOpen={isOpen} />
+        <SidebarNavItem icon={<BsChatDots />} to="/student/notices" text="Notices" isOpen={isOpen} />
         <SidebarNavItem icon={<BsFileText />} to="/student/assignments" text="Assignments" isOpen={isOpen} />
         <SidebarNavItem icon={<BsCalendar />} to="/student/attendance" text="Attendance" isOpen={isOpen} />
-        <SidebarNavItem icon={<BsBook />} to="/student/exams" text="Exams" isOpen={isOpen} />
         <SidebarNavItem icon={<BsBook />} to="/student/library" text="Library" isOpen={isOpen} />
-        <SidebarNavItem icon={<BsGraphDown />} to="/student/performance" text="Performance" isOpen={isOpen} />
         <SidebarNavItem icon={<BsGear />} to="/student/profile" text="Profile" isOpen={isOpen} />
       </ul>
       <div onClick={toggleSidebar} className="absolute top-5 right-0 w-8 h-8 bg-[#34495e] rounded-full flex items-center justify-center cursor-pointer">

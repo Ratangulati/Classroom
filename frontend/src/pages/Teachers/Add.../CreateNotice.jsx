@@ -18,29 +18,25 @@ const CreateNotice = () => {
   useEffect(() => {
     const fetchTeacherName = async () => {
       try {
+        const teacherId = localStorage.getItem('teacherId');
         const response = await axios.get(`http://localhost:3000/api/v1/teachers/${teacherId}`);
         if (response.data && response.data.teacher) {
-          setTeacherName(response.data.teacher.name); // Assuming teacher's name is available in response
+          setTeacherName(response.data.teacher.name);
         }
       } catch (error) {
         console.error('Error fetching teacher name:', error);
       }
     };
 
-    const storedTeacherId = localStorage.getItem('teacherId');
-    if (storedTeacherId) {
-      fetchTeacherName();
-    }
+    fetchTeacherName();
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`http://localhost:3000/api/v1/notices`, {
+      await axios.post(`http://localhost:3000/api/v1/notices/${classId}`, {
         title,
         content,
-        teacher: teacherName, // Include teacher's name in the notice
-        classId
       });
       navigate(`/teacher/notices`);
     } catch (error) {

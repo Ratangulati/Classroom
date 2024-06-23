@@ -1,3 +1,9 @@
+import jwt from 'jsonwebtoken';
+import { Admin } from '../models/adminRegisterSchema.js';
+import { config } from 'dotenv';
+
+config({path: "../config/config.env"});
+
 export const handleValidationError = (message, statusCode) => {
     const error = new Error(message);
     error.statusCode = statusCode;
@@ -9,3 +15,30 @@ export const errorHandler = (err, req, res, next) => {
     const message = err.message || "Internal Server Error";
     res.status(statusCode).json({ success: false, message });
 };
+
+
+// export const protect = async (req, res, next) => {
+//   let token;
+
+//   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+//     try {
+//       // Get token from header
+//       token = req.headers.authorization.split(' ')[1];
+
+//       // Verify token
+//       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+//       // Get user from the token
+//       req.user = await Admin.findById(decoded.id).select('-password');
+
+//       next();
+//     } catch (error) {
+//       console.error(error);
+//       res.status(401).json({ success: false, message: 'Not authorized' });
+//     }
+//   }
+
+//   if (!token) {
+//     res.status(401).json({ success: false, message: 'Not authorized, no token' });
+//   }
+// };

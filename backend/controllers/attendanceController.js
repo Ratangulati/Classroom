@@ -1,6 +1,7 @@
 import Attendance from "../models/attendanceSchema.js";
 import { handleValidationError } from "../middlewares/errorHandler.js";
 import { Class } from "../models/classSchema.js";
+import { Student } from "../models/studentSchema.js";
 
 export const markAttendance = async (req, res, next) => {
   const { teacherId, classId } = req.params;
@@ -95,6 +96,33 @@ export const getAllAttendance = async (req, res, next) => {
     res.status(200).json({
       success: true,
       attendanceRecords
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getStudentAttendance = async (req, res, next) => {
+  const { studentId } = req.params;
+
+  try {
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return handleValidationError("Student not found", 404);
+    }
+
+    const attendanceRecords = await Attendance.find({ 'attendanceRecords.student': studentId })
+      .populate('attendanceRecords.student', 'name registrationNumber');
+
+    const studentAttendance = attendanceRecords.map(record => ({
+      _id: record._id,
+      date: record.date,
+      present: record.attendanceRecords.find(ar => ar.student._id.equals(studentId)).present,
+    }));
+
+    res.status(200).json({
+      success: true,
+      attendanceRecords: studentAttendance
     });
   } catch (err) {
     next(err);

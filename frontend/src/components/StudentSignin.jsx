@@ -18,7 +18,11 @@ const StudentSignIn = () => {
       });
 
       if (response.data.success) {
-        navigate('/student/dashboard', { state: { name: response.data.student.name } });
+        const { student } = response.data;
+        localStorage.setItem('studentId', student._id);
+        localStorage.setItem('studentName', student.name);
+
+        navigate('/student/dashboard', { state: { name: student.name } });
       } else {
         setError('Invalid registration number or password');
       }
