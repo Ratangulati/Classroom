@@ -13,6 +13,7 @@ const AdminDashboard = () => {
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const navigate = useNavigate();
+  const adminName = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).email : '';
 
 
   const toggleSidebar = () => {
@@ -55,6 +56,7 @@ const AdminDashboard = () => {
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
       <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
+      <h2 className="text-2xl mb-5 text-gray-800">Welcome, {adminName}</h2>
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
         <div className="bg-white shadow-lg rounded-lg p-8 mb-8">
           <h2 className="text-2xl font-bold mb-4">Overview</h2>

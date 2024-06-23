@@ -8,10 +8,7 @@ import AdminRegister from './components/AdminRegister'
 
 import AdminDashboard from './pages/Admin/Dashboard'
 import Classes from './pages/Admin/Classes'
-import Exam from './pages/Admin/Exam'
 import Events from './components/Events'
-import Library from './pages/Admin/Library'
-import SettingsProfile from './pages/Admin/SettingsProfile'
 import Sidebar from './pages/Admin/Sidebar'
 import Students from './pages/Admin/Students'
 import Teachers from './pages/Admin/Teachers'
@@ -45,6 +42,7 @@ import Assignments from './pages/Teachers/Assignments'
 import NoticeList from './pages/Teachers/Notice'
 import CreateNotice from './pages/Teachers/Add.../CreateNotice'
 import StudentNoticeList from './pages/Students/Notices'
+import AdminProfile from './pages/Admin/Profile'
 
 
 
@@ -70,9 +68,7 @@ function App() {
         <Route path="/admin/classes" element={<Classes />} />
         <Route path="/class/:classId" element={<ClassDetails />} />
         <Route path="/admin/events" element={<Events/>} /> 
-        <Route path="/admin/exams" element={<Exam />} />
-        <Route path="/admin/library" element={<Library />} />
-        <Route path="/admin/settings" element={<SettingsProfile />} />
+        <Route path="/admin/profile" element={<AdminProfile />} />
         <Route path="/admin/sidebar" element={<Sidebar />} />
         <Route path="/admin/students" element={<Students />} />
         <Route path="/admin/students/:studentId" element={<StudentDetails />} />
