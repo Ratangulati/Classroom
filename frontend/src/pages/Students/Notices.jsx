@@ -7,6 +7,8 @@ import { format } from 'date-fns';
 const StudentNoticeList = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [notices, setNotices] = useState([]);
+  const [student, setStudent] = useState(null);
+  const [classes, setClasses] = useState([]);
   const [error, setError] = useState('');
 
   const toggleSidebar = () => {
@@ -20,26 +22,41 @@ const StudentNoticeList = () => {
   const fetchStudentClassAndNotices = async () => {
     const studentId = localStorage.getItem('studentId');
     console.log('Fetching class for student ID:', studentId);
-  
+
     if (!studentId) {
       console.error('studentId not found in localStorage');
       setError('Student information not found. Please log in again.');
       return;
     }
-  
+
     try {
-      const classResponse = await axios.get(`http://localhost:3000/api/v1/students/${studentId}/class`);
-      console.log('Class response:', classResponse.data);
-  
-      if (!classResponse.data.class) {
+      const studentResponse = await axios.get(`http://localhost:3000/api/v1/students/${studentId}`);
+      setStudent(studentResponse.data.student);
+
+      const classResponse = await axios.get('http://localhost:3000/api/v1/class/getall');
+      const allClasses = classResponse.data.classes;
+
+      const filteredClasses = allClasses.filter(cls =>
+        cls.students.some(std => std._id === studentResponse.data.student._id)
+      );
+      console.log(filteredClasses)
+      if (filteredClasses.length === 0) {
         setError('You are not assigned to any class.');
         return;
       }
-  
-      const classId = classResponse.data.class._id;
-      const noticesResponse = await axios.get(`http://localhost:3000/api/v1/notices/student/${classId}`);
-      console.log('Notices response:', noticesResponse.data);
-      setNotices(noticesResponse.data.notices);
+
+      setClasses(filteredClasses);
+
+      // Fetch notices for all the classes the student belongs to
+      const noticesResponses = await Promise.all(
+        filteredClasses.map(cls => {
+          console.log(`Fetching notices for class ID: ${cls._id}`);
+          return axios.get(`http://localhost:3000/api/v1/notices/student/${cls._id}`);
+        })
+      );
+
+      const allNotices = noticesResponses.flatMap(response => response.data.notices);
+      setNotices(allNotices);
     } catch (error) {
       console.error('Error fetching class or notices:', error.response?.data || error.message);
       setError('Error fetching notices. Please try again later.');

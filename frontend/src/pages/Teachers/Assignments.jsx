@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
-import { useParams, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { FaTrash } from 'react-icons/fa'; 
+import { FaTrash } from 'react-icons/fa';
 
 const Assignments = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [assignments, setAssignments] = useState([]);
-  const { classId } = useParams(); 
+  const [teacher, setTeacher] = useState(null);
+  const [classes, setClasses] = useState([]);
+  const [error, setError] = useState('');
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -16,36 +18,54 @@ const Assignments = () => {
 
   useEffect(() => {
     fetchAssignments();
-  }, [classId]);
+  }, []);
 
   const fetchAssignments = async () => {
+    const teacherId = localStorage.getItem('teacherId');
+    if (!teacherId) {
+      setError('Teacher information not found. Please log in again.');
+      return;
+    }
+
     try {
-      const token = localStorage.getItem('token'); 
-      const response = await axios.get(`http://localhost:3000/api/v1/assignments/getall`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: { classId }
-      });
-      console.log('Assignments response:', response.data);
-      setAssignments(response.data.assignments);
+      const teacherResponse = await axios.get(`http://localhost:3000/api/v1/teachers/${teacherId}`);
+      setTeacher(teacherResponse.data.teacher);
+
+      const allClassesResponse = await axios.get(`http://localhost:3000/api/v1/teachers/${teacherId}/classes`);
+      const allClasses = allClassesResponse.data.classes;
+
+      const filteredClasses = allClasses.filter(cls =>
+        cls.teachers.some(tch => tch.email === teacherResponse.data.teacher.email)
+      );
+
+      setClasses(filteredClasses);
+
+      const assignmentsResponses = await Promise.all(
+        filteredClasses.map(cls => {
+          return axios.get(`http://localhost:3000/api/v1/assignments/class/${cls._id}`);
+        })
+      );
+
+      const allAssignments = assignmentsResponses.flatMap(response => response.data.assignments);
+      setAssignments(allAssignments);
     } catch (error) {
-      console.error('Error fetching assignments:', error);
+      console.error('Error fetching assignments:', error.response?.data || error.message);
+      setError('Error fetching assignments. Please try again later.');
     }
   };
 
   const handleDeleteAssignment = async (assignmentId) => {
     try {
-      const token = localStorage.getItem('token'); 
+      const token = localStorage.getItem('token');
       const response = await axios.delete(`http://localhost:3000/api/v1/assignments/${assignmentId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log('Assignment deleted:', response.data);
       fetchAssignments();
     } catch (error) {
-      console.error('Error deleting assignment:', error);
+      console.error('Error deleting assignment:', error.response?.data || error.message);
+      setError('Error deleting assignment. Please try again later.');
     }
   };
 
@@ -54,6 +74,7 @@ const Assignments = () => {
       <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
       <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
         <h1 className="text-3xl font-bold mb-8">Assignments</h1>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {assignments.map((assignment) => (
             <div key={assignment._id} className="bg-white shadow-lg rounded-lg p-6 transition-all duration-300 hover:shadow-xl">
@@ -68,7 +89,7 @@ const Assignments = () => {
                 </button>
               </div>
               <p className="text-gray-600 mb-4">{assignment.description}</p>
-              <p className="text-gray-600 mb-4">Class: {assignment.class && assignment.class.class}</p>
+              <p className="text-gray-600 mb-4">Class: {classes.map(cls => cls.class)}</p>
               <p className="text-gray-500">
                 Deadline: {format(new Date(assignment.deadline), 'MMMM d, yyyy')}
               </p>

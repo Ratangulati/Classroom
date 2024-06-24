@@ -27,6 +27,7 @@ const ProfileSection = () => {
       );
 
       setClasses(filteredClasses);
+      console.log(allClasses)
       setLoading(false);
     } catch (error) {
       console.error('Error fetching student details:', error);

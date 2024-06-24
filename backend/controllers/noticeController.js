@@ -28,7 +28,7 @@ export const createNotice = async (req, res, next) => {
 };
 
 export const getStudentNotices = async (req, res, next) => {
-  const { classId } = req.query;
+  const { classId } = req.params;
 
   try {
     if (!mongoose.Types.ObjectId.isValid(classId)) {
