@@ -59,7 +59,7 @@ const CreateAssignment = () => {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <TeacherSidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-16'}`}>
         <h1 className="text-3xl font-bold mb-8">Create Assignment</h1>
         {classDetails ? (
           <h2 className="text-2xl font-semibold mb-4">Class: {classDetails.name || classDetails.class}</h2>

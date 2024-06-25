@@ -4,12 +4,12 @@ import cors from 'cors'
 import { dbConnection } from './db/dbConnection.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 
+
 import studentRouter from "./routers/studentRouter.js"
 import eventsRouter from "./routers/eventsRouter.js"
 import libraryRouter from "./routers/libraryRouter.js"
 import teacherRouter from "./routers/teacherRouter.js"
 import adminRegisterRouter from "./routers/adminRegisterRouter.js"
-import examRouter from "./routers/examRouter.js"
 import attendanceRouter from "./routers/attendanceRouter.js"
 import announcementRouter from "./routers/announcementRouter.js"
 import classRouter from "./routers/classRouter.js"
@@ -38,7 +38,6 @@ app.use("/api/v1/admin", adminSigninRouter);
 
 app.use("/api/v1/events", eventsRouter);
 app.use("/api/v1/library", libraryRouter);
-app.use("/api/v1/exam", examRouter);
 app.use("/api/v1/attendance", attendanceRouter);
 app.use("/api/v1/announcement", announcementRouter);
 app.use("/api/v1/class", classRouter);

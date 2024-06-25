@@ -31,3 +31,24 @@ export const getAllEvents = async (req, res, next) => {
     next(error);
   }
 };
+
+export const deleteEvent = async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    const deletedEvent = await Event.findByIdAndDelete(id);
+
+    if (!deletedEvent) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Event deleted successfully',
+    });
+  } catch (error) {
+    console.error('Error deleting Event:', error);
+    errorHandler(error, req, res, next);
+  }
+};
+

@@ -72,7 +72,8 @@ const Assignments = () => {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-16'}`}>
+      <div className="max-w-5xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Assignments</h1>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -94,13 +95,14 @@ const Assignments = () => {
                 Deadline: {format(new Date(assignment.deadline), 'MMMM d, yyyy')}
               </p>
               <Link
-                to={`/teacher/assignment-submissions/${assignment._id}`}
-                className="mt-4 bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200 inline-block"
+                // to={`/teacher/assignment-submissions/${assignment._id}`}
+                className="mt-4 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-200 inline-block"
               >
                 View Submissions
               </Link>
             </div>
           ))}
+        </div>
         </div>
       </div>
     </div>

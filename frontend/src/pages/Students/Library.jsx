@@ -49,18 +49,18 @@ const LibrarySection = () => {
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
       <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
-        <h1 className="text-2xl font-semibold mb-5">Library</h1>
-        <form onSubmit={handleSearch} className="mb-5 flex items-center">
+        <h1 className="text-3xl font-bold mb-8 text-indigo-800">Library</h1>
+        <form onSubmit={handleSearch} className="mb-8 flex items-center">
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search for books..."
-            className="p-2 border rounded-l-md w-full"
+            className="p-2 border border-gray-300 rounded-l-md w-full"
           />
           <button
             type="submit"
-            className="p-2 bg-blue-500 text-white rounded-r-md hover:bg-blue-600 flex items-center"
+            className="p-2 bg-blue-500 text-white rounded-r-md hover:bg-blue-600 flex items-center justify-center"
           >
             <FiSearch size={20} />
           </button>
@@ -72,11 +72,11 @@ const LibrarySection = () => {
         ) : error ? (
           <div className="text-red-500">{error}</div>
         ) : (
-          <ul className="list-none p-0 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {books.map((book) => (
               <li key={book.id} className="bg-white p-5 rounded-lg shadow-md">
-                <div className="font-bold text-lg">{book.volumeInfo.title}</div>
-                <p className="text-gray-700">Author: {book.volumeInfo.authors?.join(', ')}</p>
+                <div className="font-bold text-lg mb-2">{book.volumeInfo.title}</div>
+                <p className="text-gray-700 mb-2">Author: {book.volumeInfo.authors?.join(', ')}</p>
                 {book.accessInfo.epub.isAvailable ? (
                   <button
                     onClick={() => handleReadBook(book.accessInfo.webReaderLink)}

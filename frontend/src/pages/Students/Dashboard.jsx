@@ -3,6 +3,8 @@ import axios from 'axios';
 import Sidebar from './Sidebar';
 import Announcement from '../../components/Announcement';
 import Events from '../../components/Events';
+import { HiClipboardList, HiOutlineAcademicCap, HiOutlineUser, HiOutlineUserGroup } from 'react-icons/hi';
+
 
 const API_BASE_URL = 'http://localhost:3000/api/v1';
 
@@ -67,34 +69,46 @@ const StudentDashboard = () => {
     return <div className="text-red-500 text-center mt-8">{error}</div>;
   }
 
+  const StatCard = ({ title, value, icon }) => (
+    <div className="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
+      <div className="p-3 rounded-full bg-gray-100 text-gray-600">{icon}</div>
+      <div>
+        <p className="text-sm font-medium text-gray-600">{title}</p>
+        <p className="text-2xl font-semibold text-gray-900">{value}</p>
+      </div>
+    </div>
+  );
+
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
-        <h2 className="text-2xl mb-5 text-gray-800">Welcome, {studentName}</h2>
-        <section className="mb-8">
-          <h2 className="text-2xl mb-4">Overview</h2>
-          <div className="flex gap-4">
-            <div className="bg-white p-4 rounded-lg shadow-md flex-1 max-w-sm">
-              <h3 className="text-lg text-blue-500 font-semibold mb-2">Assignments</h3>
-              <p className="text-gray-700">{dashboardData.assignments.length}</p>
+      <div className={`flex-1 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-16'}`}>
+        <div className="bg-white shadow-md p-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-800">Welcome, {studentName}</h1>
+        </div>
+        <div className="p-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <StatCard
+              title="Assignments"
+              value={dashboardData.assignments.length}
+              icon={<HiClipboardList className="w-6 h-6" />}
+            />
+            <StatCard
+              title="Class"
+              value={dashboardData.classes.map(cls => cls.class).join(', ')}
+              icon={<HiOutlineUser className="w-6 h-6" />}
+            />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <Announcement announcements={dashboardData.announcements.slice(0, 5)} />
             </div>
-            <div className="bg-white p-4 rounded-lg shadow-md flex-1 max-w-sm">
-              <h3 className="text-lg text-green-500 font-semibold mb-2">Class</h3>
-              <p className="text-gray-700">{dashboardData.classes.map(cls => cls.class).join(', ')}</p>
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <Events events={dashboardData.events.slice(0, 5)} />
             </div>
           </div>
-        </section>
-
-        <section className="mb-8">
-          <h2 className="text-2xl mb-4">Announcements</h2>
-          <Announcement announcements={dashboardData.announcements} />
-        </section>
-
-        <section className="mb-8">
-          <h2 className="text-2xl mb-4">Events</h2>
-          <Events events={dashboardData.events} />
-        </section>
+        </div>
       </div>
     </div>
   );

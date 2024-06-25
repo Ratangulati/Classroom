@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
 import { Link } from 'react-router-dom';
+import { FaSearch, FaUserPlus, FaChalkboardTeacher } from 'react-icons/fa';
 
 const Teachers = () => {
   const [isOpen, setIsOpen] = useState(true);
@@ -9,19 +10,23 @@ const Teachers = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredTeachers, setFilteredTeachers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchTeachers();
   }, []);
 
   const fetchTeachers = async () => {
+    setIsLoading(true);
     try {
       const response = await axios.get('http://localhost:3000/api/v1/teachers/getall');
       setTeachers(response.data.teachers);
       setFilteredTeachers(response.data.teachers);
     } catch (error) {
       console.error('Error fetching teachers:', error);
-      setError('Error fetching teachers');
+      setError('Failed to fetch teachers. Please try again later.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -43,48 +48,71 @@ const Teachers = () => {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
-        <h1 className="text-3xl font-bold mb-8">Teachers</h1>
-        <div className="flex justify-between items-center mb-4">
-          <input
-            type="text"
-            placeholder="Search teachers..."
-            value={searchTerm}
-            onChange={handleSearch}
-            className="p-2 border border-gray-300 rounded-md flex-1 mr-4"
-          />
-          <Link
-            to="/class/:classId/add-teacher"
-            className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200"
-          >
-            Add Teacher
-          </Link>
-        </div>
-        <div className="bg-white shadow-lg rounded-lg p-8 mb-8">
-          <h2 className="text-2xl font-bold mb-4">Teachers List</h2>
-          {filteredTeachers.length === 0 ? (
-            <p>No teachers found.</p>
-          ) : (
-            <ul className="list-none p-0">
-              {filteredTeachers.map((teacher) => (
-                <li key={teacher._id} className="bg-white rounded-lg p-5 mb-3 shadow-md flex justify-between items-center">
-                  <div >
-                    <strong>{teacher.name}:</strong>  {teacher.subject}
-                  </div>
-                  <Link
-                    to={`/admin/teachers/${teacher._id}`}
-                    className="bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600 transition duration-200 ml-4"
-                  >
-                    Details
-                  </Link>
-                </li>
-              ))}
-            </ul>
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-16'}`}>
+        <div className="max-w-4xl mx-auto">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-800">Teachers</h1>
+            <Link
+              to="/class/:classId/add-teacher"
+              className="bg-purple-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-600 transition duration-300 flex items-center"
+            >
+              <FaUserPlus className="mr-2" /> Create Teacher
+            </Link>
+          </div>
+          <div className="mb-6 relative">
+            <input
+              type="text"
+              placeholder="Search teachers..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="w-full p-3 pl-10 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          </div>
+          {error && (
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+              <p>{error}</p>
+            </div>
           )}
+          <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+            <div className="p-6">
+              <h2 className="text-2xl font-bold mb-4 text-gray-800">Teachers List</h2>
+              {isLoading ? (
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
+                  <p className="mt-2 text-gray-600">Loading teachers...</p>
+                </div>
+              ) : filteredTeachers.length === 0 ? (
+                <p className="text-gray-600 text-center py-4">No teachers found.</p>
+              ) : (
+                <ul className="divide-y divide-gray-200">
+                  {filteredTeachers.map((teacher) => (
+                    <li key={teacher._id} className="py-4 hover:bg-gray-50 transition duration-150 ease-in-out">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <FaChalkboardTeacher className="text-purple-500 mr-3 text-xl" />
+                          <div>
+                            <p className="text-lg font-semibold text-gray-800">{teacher.name}</p>
+                            <p className="text-sm text-gray-600">{teacher.subject}</p>
+                          </div>
+                        </div>
+                        <Link
+                          to={`/admin/teachers/${teacher._id}`}
+                          className="bg-purple-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-600 transition duration-300"
+                        >
+                          Details
+                        </Link>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  );  
+  );
 };
 
 export default Teachers;

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { FaArrowLeft, FaPlus } from "react-icons/fa";
+import { HiOutlineUserGroup } from 'react-icons/hi';
 
 const AddClass = () => {
   const [newClassName, setNewClassName] = useState('');
@@ -28,8 +30,8 @@ const AddClass = () => {
         <h2 className="text-2xl font-bold mb-4 text-center">Add New Class</h2>
         <form onSubmit={handleAddClass}>
           <div className="mb-4">
-            <label htmlFor="className" className="block text-gray-700 font-bold mb-2">
-              Class Name
+            <label htmlFor="className" className="flex items-center block text-gray-700 font-bold mb-2">
+                <HiOutlineUserGroup className="mr-2" /> Class Name
             </label>
             <input
               type="text"
@@ -44,17 +46,16 @@ const AddClass = () => {
           <div className="flex justify-between">
             <button
               type="submit"
-              className="bg-blue-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-600 transition duration-200"
+              className="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 flex items-center"
             >
-              Add Class
+              <FaPlus className="mr-2" /> Create Class
             </button>
             <button
-              type="button"
-              onClick={handleBack}
-              className="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-lg ml-4 hover:bg-gray-300 transition duration-200"
-            >
-              Back
-            </button>
+                onClick={handleBack}
+                className="flex items-center bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition duration-300"
+              >
+                <FaArrowLeft className="mr-2" /> Back
+              </button>
           </div>
         </form>
       </div>

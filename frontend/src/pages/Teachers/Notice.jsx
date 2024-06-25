@@ -32,8 +32,7 @@ const NoticeList = () => {
 
   const handleDeleteNotice = async (noticeId) => {
     try {
-      const response = await axios.delete(`http://localhost:3000/api/v1/notices/${noticeId}`);
-      console.log('Notice deleted:', response.data);
+      await axios.delete(`http://localhost:3000/api/v1/notices/${noticeId}`);
       fetchNotices();
     } catch (error) {
       console.error('Error deleting notice:', error);
@@ -43,34 +42,36 @@ const NoticeList = () => {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
-        <h1 className="text-3xl font-bold mb-8">Notices</h1>
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-16'}`}>
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-800 mb-8">Notices</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {notices.map((notice) => (
             <div key={notice._id} className="bg-white shadow-lg rounded-lg p-6 transition-all duration-300 hover:shadow-xl">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-2xl font-bold">{notice.title}</h3>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-2xl font-bold text-gray-800">{notice.title}</h3>
                 <button
                   onClick={() => handleDeleteNotice(notice._id)}
-                  className="text-red-500 hover:text-red-700"
+                  className="text-red-500 hover:text-red-700 transition duration-200"
                   title="Delete Notice"
                 >
                   <FaTrash />
                 </button>
               </div>
               <p className="text-gray-600 mb-4">{notice.content}</p>
-              <p className="text-gray-600 mb-4">Class: {notice.classId}</p> {/* Update to classId */}
+              <p className="text-gray-600 mb-4">Class: {notice.class && notice.class.class}</p>
               <p className="text-gray-500">
                 Date: {format(new Date(notice.createdAt), 'MMMM d, yyyy hh:mm a')}
               </p>
               <Link
-                to={`/teacher/notice-details/${notice._id}`}
-                className="mt-4 bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200 inline-block"
+                // to={`/teacher/notice-details/${notice._id}`}
+                className="mt-4 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-200 inline-block"
               >
                 View Details
               </Link>
             </div>
           ))}
+        </div>
         </div>
       </div>
     </div>

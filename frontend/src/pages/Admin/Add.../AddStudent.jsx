@@ -1,27 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
+import { FaArrowLeft, FaPlus } from "react-icons/fa";
+import { HiEye, HiHashtag, HiOutlineUser } from 'react-icons/hi';
 
 const AddStudent = () => {
-  // const { classId } = useParams();
   const [newStudent, setNewStudent] = useState({ name: '', registrationNumber: '', password: '' });
   const [errorMessage, setErrorMessage] = useState('');
   const [className, setClassName] = useState('');
   const navigate = useNavigate();
-
-  // useEffect(() => {
-  //   const fetchClassName = async () => {
-  //     try {
-  //       const response = await axios.get(`http://localhost:3000/api/v1/class/${classId}`);
-  //       setClassName(response.data.class.className);
-  //     } catch (error) {
-  //       console.error('Error fetching class name:', error);
-  //       setErrorMessage('Failed to fetch class name');
-  //     }
-  //   };
-
-  //   fetchClassName();
-  // }, [classId]);
 
   const handleCreateStudent = async (e) => {
     e.preventDefault();
@@ -52,8 +39,8 @@ const AddStudent = () => {
         <h2 className="text-2xl font-bold mb-4 text-center">Add New Student to {className}</h2>
         <form onSubmit={handleCreateStudent} className="mb-4 flex flex-col">
           <div className="mb-4">
-            <label htmlFor="studentName" className="block text-gray-700 font-bold mb-2">
-              Name
+            <label htmlFor="studentName" className="flex items-center block text-gray-700 font-bold mb-2">
+            <HiOutlineUser className="mr-2" /> Name
             </label>
             <input
               id="studentName"
@@ -65,8 +52,8 @@ const AddStudent = () => {
               required
             />
 
-            <label htmlFor="registrationNumber" className="block text-gray-700 font-bold mb-2 mt-2">
-              Registration Number
+            <label htmlFor="registrationNumber" className="flex items-center block text-gray-700 font-bold mb-2 mt-3">
+            <HiHashtag className="mr-2" /> Registration Number
             </label>
             <input
               id="registrationNumber"
@@ -78,8 +65,8 @@ const AddStudent = () => {
               required
             />
 
-            <label htmlFor="password" className="block text-gray-700 font-bold mb-2 mt-2">
-              Password
+            <label htmlFor="password" className="flex items-center block text-gray-700 font-bold mb-2 mt-3">
+            <HiEye className="mr-2" /> Password
             </label>
             <input
               id="password"
@@ -92,12 +79,15 @@ const AddStudent = () => {
             />
           </div>
           <div className="flex justify-between">
-            <button type="submit" className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-              Add Student
+            <button type="submit"  className="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 flex items-center">
+            <FaPlus className="mr-2" /> Create Student
             </button>
-            <button type="button" onClick={() => navigate(-1)} className="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-lg ml-4 hover:bg-gray-300 transition duration-200">
-              Back
-            </button>
+            <button
+                onClick={() => navigate(-1)}
+                className="flex items-center bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition duration-300"
+              >
+                <FaArrowLeft className="mr-2" /> Back
+              </button>
           </div>
         </form>
         {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}

@@ -61,6 +61,26 @@ export const getClassById = async (req, res, next) => {
 };
 
 
+export const deleteClass = async (req, res, next) => {
+  const { classId } = req.params;
+
+  try {
+    const deletedClass = await Class.findByIdAndDelete(classId);
+
+    if (!deletedClass) {
+      return res.status(404).json({ success: false, message: 'Class not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Class deleted successfully',
+    });
+  } catch (error) {
+    console.error('Error deleting class:', error);
+    next(error);
+  }
+};
+
 // Student
 // export const addStudent = async (req, res, next) => {
 //   const { classId } = req.params;

@@ -48,8 +48,14 @@ const CreateNotice = () => {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <TeacherSidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-16'}`}>
         <h1 className="text-3xl font-bold mb-8">Create Notice</h1>
+        <button
+            onClick={() => navigate(`/teacher/classes`)}
+            className="bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-200 inline-block mb-6"
+        >
+            Back to Classes
+        </button>
         <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-6">
           <div className="mb-4">
             <label htmlFor="title" className="block text-gray-700 font-bold mb-2">

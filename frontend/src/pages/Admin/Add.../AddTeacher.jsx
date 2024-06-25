@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { FaArrowLeft, FaPlus } from "react-icons/fa";
+import { HiEye, HiHashtag, HiOutlineBookOpen, HiOutlineEye, HiOutlineUser } from 'react-icons/hi';
 
 const AddTeacher = () => {
   const [newTeacher, setNewTeacher] = useState({
@@ -48,9 +50,9 @@ const AddTeacher = () => {
           <div className="mb-4">
             <label
               htmlFor="className"
-              className="block text-gray-700 font-bold mb-2"
+              className="flex items-center block text-gray-700 font-bold mb-2"
             >
-              Name
+              <HiOutlineUser className="mr-2" /> Name
             </label>
             <input
               type="text"
@@ -64,9 +66,9 @@ const AddTeacher = () => {
             />
             <label
               htmlFor="className"
-              className="block text-gray-700 font-bold mb-2 mt-2"
+              className="flex items-center block text-gray-700 font-bold mb-2 mt-3"
             >
-              Email
+              <HiHashtag className="mr-2" /> Email
             </label>
             <input
               type="email"
@@ -80,9 +82,9 @@ const AddTeacher = () => {
             />
             <label
               htmlFor="className"
-              className="block text-gray-700 font-bold mb-2 mt-2"
+              className="flex items-center block text-gray-700 font-bold mb-2 mt-3"
             >
-              Subject
+              <HiOutlineBookOpen className="mr-2" /> Subject
             </label>
             <input
               type="text"
@@ -96,9 +98,9 @@ const AddTeacher = () => {
             />
             <label
               htmlFor="className"
-              className="block text-gray-700 font-bold mb-2 mt-2"
+              className="flex items-center block text-gray-700 font-bold mb-2 mt-3"
             >
-              Password
+              <HiOutlineEye className="mr-2" /> Password
             </label>
             <input
               type="password"
@@ -112,19 +114,15 @@ const AddTeacher = () => {
             />
           </div>
           <div className="flex justify-between">
-            <button
-              type="submit"
-              className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-            >
-              Add Teacher
+          <button type="submit"  className="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 flex items-center">
+            <FaPlus className="mr-2" /> Create Teacher
             </button>
             <button
-              type="button"
-              onClick={handleBack}
-              className="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-lg ml-4 hover:bg-gray-300 transition duration-200"
-            >
-              Back
-            </button>
+                onClick={handleBack}
+                className="flex items-center bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition duration-300"
+              >
+                <FaArrowLeft className="mr-2" /> Back
+              </button>
           </div>
         </form>
         {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}

@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import Sidebar from './Sidebar';
 import Announcement from '../../components/Announcement';
 import Events from '../../components/Events';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import axios from 'axios';
+import { useLocation } from 'react-router-dom';
+import { HiOutlineUserGroup } from 'react-icons/hi';
 
 const TeacherDashboard = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [events, setEvents] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [classes, setClasses] = useState([]);
-  const navigate = useNavigate();
   const location = useLocation();
   const teacherName = location.state?.name || localStorage.getItem('teacherName') || '';
 
@@ -23,60 +23,70 @@ const TeacherDashboard = () => {
   }, []);
 
   const fetchData = async () => {
-  const teacherId = localStorage.getItem('teacherId');
+    const teacherId = localStorage.getItem('teacherId');
 
-  if (!teacherId) {
-    console.error('teacherId not found in localStorage');
-    return;
-  }
+    if (!teacherId) {
+      console.error('teacherId not found in localStorage');
+      return;
+    }
 
-  try {
-    const [
-      eventsResponse,
-      announcementsResponse,
-      classesResponse,
-    ] = await Promise.all([
-      axios.get('http://localhost:3000/api/v1/events/getall'),
-      axios.get('http://localhost:3000/api/v1/announcement/getall'),
-      axios.get(`http://localhost:3000/api/v1/teachers/${teacherId}/classes`),
-    ]);
+    try {
+      const [
+        eventsResponse,
+        announcementsResponse,
+        classesResponse,
+      ] = await Promise.all([
+        axios.get('http://localhost:3000/api/v1/events/getall'),
+        axios.get('http://localhost:3000/api/v1/announcement/getall'),
+        axios.get(`http://localhost:3000/api/v1/teachers/${teacherId}/classes`),
+      ]);
 
-    console.log('Events response:', eventsResponse.data);
-    console.log('Announcements response:', announcementsResponse.data);
-    console.log('Classes response:', classesResponse.data);
+      console.log('Events response:', eventsResponse.data);
+      console.log('Announcements response:', announcementsResponse.data);
+      console.log('Classes response:', classesResponse.data);
 
-    setEvents(eventsResponse.data.events || []);
-    setAnnouncements(announcementsResponse.data.announcement || []);
-    setClasses(classesResponse.data.classes || []);
-  } catch (error) {
-    console.error('Error fetching data:', error);
-  }
-};
+      setEvents(eventsResponse.data.events || []);
+      setAnnouncements(announcementsResponse.data.announcement || []);
+      setClasses(classesResponse.data.classes || []);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  const StatCard = ({ title, value, icon }) => (
+    <div className="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
+      <div className="p-3 rounded-full bg-gray-100 text-gray-600">{icon}</div>
+      <div>
+        <p className="text-sm font-medium text-gray-600">{title}</p>
+        <p className="text-2xl font-semibold text-gray-900">{value}</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
-      <h2 className="text-2xl mb-5 text-gray-800">Welcome, {teacherName}</h2>
-        <section className="mb-8">
-          <h2 className="text-2xl mb-4">Overview</h2>
-          <div className="flex gap-4">
-            <div className="bg-white p-4 rounded-lg shadow-md flex-1 max-w-sm">
-              <h3 className="text-lg text-blue-500 font-semibold mb-2">Classes Assigned</h3>
-              <p className="text-gray-700">{classes.length}</p>
+      <div className={`flex-1 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-16'}`}>
+        <div className="bg-white shadow-md p-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-800">Welcome, {teacherName}</h1>
+        </div>
+        <div className="p-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <StatCard
+              title="Classes Assigned"
+              value={classes.length}
+              icon={<HiOutlineUserGroup className="w-6 h-6" />}
+            />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <Announcement announcements={announcements.slice(0, 5)}/>
+            </div>
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <Events events={events.slice(0, 5)}/>
             </div>
           </div>
-        </section>
-
-        <section className="mb-8">
-          <h2 className="text-2xl mb-4"><Announcement announcements={announcements}/></h2>
-          {/* Placeholder for recent activity list */}
-        </section>
-
-        <section className="mb-8">
-          <h2 className="text-2xl mb-4"><Events events={events} /></h2>
-          {/* Placeholder for upcoming events calendar or list */}
-        </section>
+        </div>
       </div>
     </div>
   );

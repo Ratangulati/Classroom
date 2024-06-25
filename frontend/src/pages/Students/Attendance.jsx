@@ -37,15 +37,16 @@ const StudentAttendance = () => {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
-        <h2 className="text-3xl font-bold mb-5 text-indigo-800">Attendance</h2>
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-16'}`}>
+      <div className="max-w-5xl mx-auto">
+        <h2 className="text-3xl font-bold mb-5 text-gray-800">Attendance</h2>
         {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
         <ul className="list-none p-0">
           {attendance.length > 0 ? (
             attendance.map(({ _id, date, present }) => (
-              <li key={_id} className="flex items-center mb-5">
-                <span className="font-bold">{new Date(date).toLocaleDateString()}</span>
-                <span className={`ml-3 ${present ? 'text-green-500' : 'text-red-500'}`}>
+              <li key={_id} className="flex items-center justify-between p-4 mb-4 bg-white shadow rounded-lg">
+                <span className="text-lg font-semibold">{new Date(date).toLocaleDateString()}</span>
+                <span className={`text-lg font-semibold ${present ? 'text-green-500' : 'text-red-500'}`}>
                   {present ? 'Present' : 'Absent'}
                 </span>
               </li>
@@ -54,6 +55,7 @@ const StudentAttendance = () => {
             <p className="text-gray-600">No attendance records found.</p>
           )}
         </ul>
+        </div>
       </div>
     </div>
   );

@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
 import { Link, useNavigate } from 'react-router-dom';
+import { FaChalkboardTeacher, FaPlus, FaAngleRight } from 'react-icons/fa';
 
 const ClassSection = () => {
   const [classes, setClasses] = useState([]);
   const [isOpen, setIsOpen] = useState(true);
-  const [teacherId, setTeacherId] = useState(null);
   const navigate = useNavigate();
 
   const toggleSidebar = () => {
@@ -16,7 +16,6 @@ const ClassSection = () => {
   useEffect(() => {
     const storedTeacherId = localStorage.getItem('teacherId');
     if (storedTeacherId) {
-      setTeacherId(storedTeacherId);
       fetchClasses(storedTeacherId);
     }
   }, []);
@@ -39,47 +38,56 @@ const ClassSection = () => {
   };
 
   const handleAddNotice = (classId) => {
-    navigate(`/teacher/create-notice/${classId}`); // Ensure classId is passed correctly
+    navigate(`/teacher/create-notice/${classId}`);
   };
 
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
-        <h1 className="text-3xl font-bold mb-8">Classes</h1>
-        {classes.length === 0 ? (
-          <div className="bg-white shadow-lg rounded-lg p-6">
-            <p className="text-lg font-semibold">No classes assigned.</p>
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-16'}`}>
+        <div className="max-w-5xl mx-auto">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-800">Classes</h1>
           </div>
-        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {classes.map((classItem) => (
-              <div key={classItem._id} className="bg-white shadow-lg rounded-lg p-6 transition-all duration-300 hover:shadow-xl">
-                <h3 className="text-2xl font-bold mb-4">{classItem.class}</h3>
-                <div className="flex justify-between items-center">
-                  <Link
-                    to={`/teacher/class/${classItem._id}`}
-                    className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200"
-                  >
-                    Details
-                  </Link>
-                  <button
-                    onClick={() => handleAddAssignment(classItem._id)}
-                    className="bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition duration-200"
-                  >
-                    Add Assignment
-                  </button>
-                  <button
-                    onClick={() => handleAddNotice(classItem._id)}
-                    className="bg-yellow-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 transition duration-200"
-                  >
-                    Add Notice
-                  </button>
-                </div>
+            {classes.length === 0 ? (
+              <div className="bg-white shadow-lg rounded-lg p-6">
+                <p className="text-lg font-semibold">No classes assigned.</p>
               </div>
-            ))}
+            ) : (
+              classes.map((classItem) => (
+                <div key={classItem._id} className="bg-white shadow-lg rounded-lg p-6 transition-all duration-300 hover:shadow-xl">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <FaChalkboardTeacher className="text-indigo-500 mr-3 text-xl" />
+                      <span className="text-lg text-gray-700">{classItem.class}</span>
+                    </div>
+                    <Link
+                      to={`/teacher/class/${classItem._id}`}
+                      className="flex items-center text-indigo-600 hover:text-indigo-900 transition duration-150 ease-in-out"
+                    >
+                      Details <FaAngleRight className="ml-1" />
+                    </Link>
+                  </div>
+                  <div className="">
+                    <button
+                      onClick={() => handleAddAssignment(classItem._id)}
+                      className="w-full bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition duration-200 flex items-center"
+                    >
+                      <FaPlus className="mr-2" /> Add Assignment
+                    </button>
+                    <button
+                      onClick={() => handleAddNotice(classItem._id)}
+                      className="w-full bg-yellow-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-yellow-600 transition duration-200 mt-2 flex items-center"
+                    >
+                      <FaPlus className="mr-2" /> Add Notice
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

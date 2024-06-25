@@ -1,35 +1,60 @@
-import React, { useState } from 'react';
-import { BsGraphUp, BsFileText, BsBook, BsGraphDown, BsCalendar, BsChatDots, BsGear, BsCalendarEvent } from 'react-icons/bs';
-import { Link } from 'react-router-dom';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { HiAnnotation, HiArchive, HiCalendar, HiClipboardList, HiNewspaper, HiOutlineChartBar, HiOutlineCog } from 'react-icons/hi';
 
 const StudentSidebar = ({ isOpen, toggleSidebar }) => {
- 
-  const SidebarNavItem = ({ icon, to, text, isOpen }) => {
+  const location = useLocation();
+
+  const SidebarNavItem = ({ icon, to, text }) => {
+    const isActive = location.pathname === to;
     return (
-      <li className="flex items-center p-3 border-b border-blue-800 hover:bg-blue-700 transition-colors duration-300">
+      <Link
+        to={to}
+        className={`flex items-center p-3 transition-colors duration-200 pl-5 ${
+          isActive
+            ? 'bg-gray-700 text-white'
+            : 'text-gray-300 hover:bg-gray-600 hover:text-white'
+        }`}
+      >
         <div className="text-xl">{icon}</div>
-        {isOpen && <Link to={to} className="ml-3 text-lg text-white no-underline">{text}</Link>}
-      </li>
+        {isOpen && <span className="ml-3 text-sm font-medium">{text}</span>}
+      </Link>
     );
-  };  
+  };
 
   return (
-    <div className={`fixed top-0 left-0 h-full bg-[#2c3e50] text-white overflow-y-auto pt-16 transition-width duration-300 z-100 ${isOpen ? 'w-64' : 'w-20'}`}>
-      <div className="flex flex-col items-center py-5">
-        <img src="../assets/bg1.png" alt="Logo" className="w-12 h-auto" />
-        <h1 className={`mt-2 text-lg font-bold text-center ${!isOpen && 'hidden'}`}>Student</h1>
+    <div
+    className={`fixed top-0 left-0 h-full bg-gray-800 text-white overflow-y-auto transition-all duration-300 ease-in-out ${
+      isOpen ? 'w-64' : 'w-16'
+      }`}
+    >
+      <div className="flex justify-center items-center h-16 bg-gray-900">
+        <img src="../assets/bg1.png" alt="Logo" className="h-8 w-auto" />
       </div>
-      <ul className="list-none p-0">
-        <SidebarNavItem icon={<BsGraphUp />} to="/student/dashboard" text="Dashboard" isOpen={isOpen} />
-        <SidebarNavItem icon={<BsChatDots />} to="/student/notices" text="Notices" isOpen={isOpen} />
-        <SidebarNavItem icon={<BsFileText />} to="/student/assignments" text="Assignments" isOpen={isOpen} />
-        <SidebarNavItem icon={<BsCalendar />} to="/student/attendance" text="Attendance" isOpen={isOpen} />
-        <SidebarNavItem icon={<BsBook />} to="/student/library" text="Library" isOpen={isOpen} />
-        <SidebarNavItem icon={<BsGear />} to="/student/profile" text="Profile" isOpen={isOpen} />
-      </ul>
-      <div onClick={toggleSidebar} className="absolute top-5 right-0 w-8 h-8 bg-[#34495e] rounded-full flex items-center justify-center cursor-pointer">
-        <span className={`text-white text-xl transform transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}>▲</span>
-      </div>
+      <nav className="mt-5">
+        <SidebarNavItem icon={<HiOutlineChartBar />} to="/student/dashboard" text="Dashboard" />
+        <SidebarNavItem icon={<HiAnnotation />} to="/student/notices" text="Notices" />
+        <SidebarNavItem icon={<HiNewspaper />} to="/student/library" text="Library" />
+        <SidebarNavItem icon={<HiClipboardList />} to="/student/assignments" text="Assignments" />
+        <SidebarNavItem icon={<HiCalendar />} to="/student/attendance" text="Attendance" />
+        <SidebarNavItem icon={<HiOutlineCog />} to="/student/profile" text="Profile" />
+      </nav>
+      <button
+        className="absolute bottom-4 left-4 bg-gray-700 text-white p-2 rounded-full hover:bg-gray-600 transition-colors duration-200"
+        onClick={toggleSidebar}
+      >
+        <svg
+          className={`w-6 h-6 transform transition-transform duration-200 ${
+            isOpen ? 'rotate-180' : 'rotate-0'
+          }`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
     </div>
   );
 };
