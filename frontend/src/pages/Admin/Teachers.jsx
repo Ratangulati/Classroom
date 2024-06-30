@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
 import { Link } from 'react-router-dom';
-import { FaSearch, FaUserPlus, FaChalkboardTeacher } from 'react-icons/fa';
+import { FaSearch, FaUserPlus, FaChalkboardTeacher, FaAngleRight } from 'react-icons/fa';
 
 const Teachers = () => {
   const [isOpen, setIsOpen] = useState(true);
@@ -98,9 +98,9 @@ const Teachers = () => {
                         </div>
                         <Link
                           to={`/admin/teachers/${teacher._id}`}
-                          className="bg-purple-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-600 transition duration-300"
+                          className="flex items-center text-purple-600 hover:text-purple-900 transition duration-150 ease-in-out"
                         >
-                          Details
+                          Details <FaAngleRight className="ml-1" />
                         </Link>
                       </div>
                     </li>

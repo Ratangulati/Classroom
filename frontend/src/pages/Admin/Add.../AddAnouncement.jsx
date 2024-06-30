@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Sidebar from '../Sidebar';
 
 const AddAnnouncement = () => {
+  const [isOpen, setIsOpen] = useState(true);
   const [announcement, setAnnouncement] = useState('');
   const navigate = useNavigate();
 
@@ -23,8 +25,15 @@ const AddAnnouncement = () => {
     }
   };
 
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-100">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-16'}`}>
       <div className="flex-1 p-8">
         <h1 className="text-3xl font-bold mb-8">Add Announcement</h1>
         <div className="bg-white shadow-lg rounded-lg p-8 mb-8">
@@ -54,9 +63,10 @@ const AddAnnouncement = () => {
             onClick={() => navigate(-1)}
             className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md focus:outline-none focus:ring focus:ring-gray-200 focus:ring-opacity-50"
           >
-            Go Back
+            Back
           </button>
         </div>
+      </div>
       </div>
       <ToastContainer />
     </div>

@@ -3,8 +3,11 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaPlus } from "react-icons/fa";
 import { HiEye, HiHashtag, HiOutlineBookOpen, HiOutlineEye, HiOutlineUser } from 'react-icons/hi';
+import Sidebar from '../Sidebar';
+
 
 const AddTeacher = () => {
+  const [isOpen, setIsOpen] = useState(true);
   const [newTeacher, setNewTeacher] = useState({
     name: "",
     email: "",
@@ -42,8 +45,15 @@ const AddTeacher = () => {
     navigate("/admin/teachers");
   };
 
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+
+
   return (
     <div className="bg-gray-100 shadow-xl rounded-lg p-8 mb-8 h-screen flex flex-col justify-center items-center">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-16'}`}>
       <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-md">
         <h2 className="text-2xl font-bold mb-4 text-center">Add New Teacher</h2>
         <form onSubmit={handleAddTeacher} className="mb-4 flex flex-col">
@@ -113,9 +123,9 @@ const AddTeacher = () => {
               required
             />
           </div>
-          <div className="flex justify-between">
-          <button type="submit"  className="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 flex items-center">
-            <FaPlus className="mr-2" /> Create Teacher
+          <div className="flex justify-between gap-2">
+            <button type="submit"  className="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 flex items-center">
+              <FaPlus className="mr-2" /> Create Teacher
             </button>
             <button
                 onClick={handleBack}
@@ -126,6 +136,7 @@ const AddTeacher = () => {
           </div>
         </form>
         {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
+      </div>
       </div>
     </div>
   );

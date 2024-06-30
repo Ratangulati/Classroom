@@ -57,12 +57,12 @@ const Home = () => {
               Login
             </button>
           </div>
-          <Link
+          {/* <Link
             to="/request-demo"
             className="block mt-6 text-lg font-semibold text-blue-600 hover:underline"
           >
             Request a Demo
-          </Link>
+          </Link> */}
         </div>
       </div>
     </div>

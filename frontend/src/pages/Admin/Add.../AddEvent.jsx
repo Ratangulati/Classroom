@@ -5,8 +5,11 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Sidebar from '../Sidebar';
+
 
 const AddEvent = () => {
+  const [isOpen, setIsOpen] = useState(true);
   const [events, setEvents] = useState([]);
   const [newEvent, setNewEvent] = useState({
     title: "",
@@ -36,17 +39,22 @@ const AddEvent = () => {
   };
 
   const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setNewEvent({ ...newEvent, [name]: value });
-      };
-    
-      const handleDateChange = (date) => {
-        setNewEvent({ ...newEvent, date });
-      };
-    
+    const { name, value } = e.target;
+    setNewEvent({ ...newEvent, [name]: value });
+  };
 
+  const handleDateChange = (date) => {
+    setNewEvent({ ...newEvent, date });
+  };
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+    
   return (
     <div className="flex min-h-screen bg-gray-100">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-16'}`}>
       <div className="flex-1 p-8">
         <h1 className="text-3xl font-bold mb-8">Add Event</h1>
         <div className="bg-white shadow-lg rounded-lg p-8 mb-8">
@@ -92,6 +100,11 @@ const AddEvent = () => {
               className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg focus:outline-none">
               Add Event
             </button>
+            <button
+              onClick={() => navigate(-1)}
+              className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md focus:outline-none focus:ring focus:ring-gray-200 focus:ring-opacity-50 transition duration-300 ml-2">
+              Back
+          </button>
           </form>
 
           {showNewEvent && (
@@ -105,15 +118,11 @@ const AddEvent = () => {
                   : ""}
               </p>
               <p>{newEvent.description}</p>
+
             </div>
           )}
-
-          <button
-            onClick={() => navigate(-1)}
-            className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md focus:outline-none focus:ring focus:ring-gray-200 focus:ring-opacity-50 transition duration-300 ml-2">
-            Go Back
-          </button>
         </div>
+      </div>
       </div>
       <ToastContainer />
     </div>
