@@ -25,7 +25,7 @@ app.use((err, req, res, next) => {
 })
 
 const corsOptions = {
-    origin: process.env.FRONTEND_URL,
+    origin: process.env.FRONTEND_URL || "https://classroom-one-opal.vercel.app",
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true, 
     optionsSuccessStatus: 200
