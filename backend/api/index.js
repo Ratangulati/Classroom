@@ -24,7 +24,12 @@ app.use((err, req, res, next) => {
     errorHandler(err, req, res, next)
 })
 
-app.use(cors()); 
+const corsOptions = {
+    origin: 'https://classroom-one-opal.vercel.app', 
+    optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions)); 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}))
 
