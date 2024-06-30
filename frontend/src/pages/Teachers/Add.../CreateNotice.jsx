@@ -19,7 +19,7 @@ const CreateNotice = () => {
     const fetchTeacherName = async () => {
       try {
         const teacherId = localStorage.getItem('teacherId');
-        const response = await axios.get(`http://localhost:3000/api/v1/teachers/${teacherId}`);
+        const response = await axios.get(`https://classroom-api-beta.vercel.app/teachers/${teacherId}`);
         if (response.data && response.data.teacher) {
           setTeacherName(response.data.teacher.name);
         }
@@ -34,7 +34,7 @@ const CreateNotice = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`http://localhost:3000/api/v1/notices/${classId}`, {
+      await axios.post(`https://classroom-api-beta.vercel.app/notices/${classId}`, {
         title,
         content,
       });
