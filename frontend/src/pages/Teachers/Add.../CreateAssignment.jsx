@@ -3,6 +3,8 @@ import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import TeacherSidebar from '../Sidebar';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const CreateAssignment = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [assignment, setAssignment] = useState({
@@ -30,7 +32,7 @@ const CreateAssignment = () => {
         console.error('No class ID available');
         return;
       }
-      const response = await axios.get(`https://classroom-api-beta.vercel.app/class/${classId}`);
+      const response = await axios.get(`${apiUrl}/api/v1/class/${classId}`);
       console.log('Class details response:', response.data);
       setClassDetails(response.data.class);
     } catch (error) {
@@ -45,7 +47,7 @@ const CreateAssignment = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`https://classroom-api-beta.vercel.app/assignments`, {
+      await axios.post(`${apiUrl}/api/v1/assignments`, {
         ...assignment,
         classId
       });

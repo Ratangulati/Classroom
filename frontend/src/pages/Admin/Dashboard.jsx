@@ -15,7 +15,8 @@ const AdminDashboard = () => {
     teachers: [],
   });
   const adminName = JSON.parse(localStorage.getItem('user'))?.email || 'Admin';
-
+  const apiUrl = import.meta.env.VITE_API_URL;
+  
   const toggleSidebar = () => setIsOpen(!isOpen);
 
   useEffect(() => {
@@ -25,11 +26,11 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       const [events, announcements, classes, students, teachers] = await Promise.all([
-        axios.get('https://classroom-api-beta.vercel.app/events/getall'),
-        axios.get('https://classroom-api-beta.vercel.app/announcement/getall'),
-        axios.get('https://classroom-api-beta.vercel.app/class/getall'),
-        axios.get('https://classroom-api-beta.vercel.app/students/getall'),
-        axios.get('https://classroom-api-beta.vercel.app/teachers/getall'),
+        axios.get(`${apiUrl}/api/v1/events/getall`),
+        axios.get(`${apiUrl}/api/v1/announcement/getall`),
+        axios.get(`${apiUrl}/api/v1/class/getall`),
+        axios.get(`${apiUrl}/api/v1/students/getall`),
+        axios.get(`${apiUrl}/api/v1/teachers/getall`),
       ]);
 
       setDashboardData({

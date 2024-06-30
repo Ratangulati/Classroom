@@ -5,7 +5,8 @@ import axios from 'axios';
 const AnnouncementStudent = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [isOpen, setIsOpen] = useState(true);
-
+  const apiUrl = import.meta.env.VITE_API_URL;
+  
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
@@ -16,7 +17,7 @@ const AnnouncementStudent = () => {
 
   const fetchAnnouncements = async () => {
     try {
-      const response = await axios.get('https://classroom-api-beta.vercel.app/announcements/getall');
+      const response = await axios.get(`${apiUrl}/api/v1/announcements/getall`);
       setAnnouncements(response.data.announcements);
     } catch (error) {
       console.error('Error fetching announcements:', error);

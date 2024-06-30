@@ -9,11 +9,12 @@ const AddAnnouncement = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [announcement, setAnnouncement] = useState('');
   const navigate = useNavigate();
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   const handleAddAnnouncement = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('https://classroom-api-beta.vercel.app/announcement', {
+      const response = await axios.post(`${apiUrl}/api/v1/announcement`, {
         announcement,
       });
       toast.success('Announcement added successfully');

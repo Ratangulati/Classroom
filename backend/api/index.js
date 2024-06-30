@@ -28,7 +28,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({extended: true}))
 
-app.get('/', (req, res) => res.status(200).json({msf: "Welcome to Classroom!"}))
+app.get('/', (req, res) => res.status(200).json({msg: "Welcome to Classroom!"}))
  
 app.use("/api/v1/students", studentRouter);
 app.use("/api/v1/teachers", teacherRouter);

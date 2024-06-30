@@ -8,14 +8,15 @@ const AddSubject = () => {
   const [teachers, setTeachers] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
-
+  const apiUrl = import.meta.env.VITE_API_URL;
+  
   useEffect(() => {
     fetchTeachers();
   }, []);
 
   const fetchTeachers = async () => {
     try {
-      const response = await axios.get('https://classroom-api-beta.vercel.app/teachers/getall');
+      const response = await axios.get(`${apiUrl}/api/v1/teachers/getall`);
       setTeachers(response.data.teachers);
     } catch (error) {
       console.error('Error fetching teachers:', error);
@@ -32,7 +33,7 @@ const AddSubject = () => {
 
     try {
       const response = await axios.post(
-        `https://classroom-api-beta.vercel.app/class/${classId}/subjects`,
+        `${apiUrl}/api/v1/class/${classId}/subjects`,
         {
           name: newSubject.name,
           teacherId: newSubject.teacher,

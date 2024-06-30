@@ -13,6 +13,8 @@ const StudentDetails = () => {
   const { studentId } = useParams();
   const navigate = useNavigate();
 
+  const apiUrl = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     fetchStudentDetails();
   }, [studentId]);
@@ -21,12 +23,12 @@ const StudentDetails = () => {
     setIsLoading(true);
     try {
       const studentResponse = await axios.get(
-        `https://classroom-api-beta.vercel.app/students/${studentId}`
+        `${apiUrl}/api/v1/students/${studentId}`
       );
       setStudent(studentResponse.data.student);
 
       const allClassesResponse = await axios.get(
-        "https://classroom-api-beta.vercel.app/class/getall"
+        "${apiUrl}/api/v1/class/getall"
       );
       const allClasses = allClassesResponse.data.classes;
 
@@ -49,7 +51,7 @@ const StudentDetails = () => {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`https://classroom-api-beta.vercel.app/students/${studentId}`);
+      await axios.delete(`${apiUrl}/api/v1/students/${studentId}`);
       navigate("/admin/students");
     } catch (error) {
       console.error("Error deleting student:", error);

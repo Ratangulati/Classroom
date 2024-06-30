@@ -3,6 +3,8 @@ import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import TeacherSidebar from '../Sidebar';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const CreateNotice = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [title, setTitle] = useState('');
@@ -19,7 +21,7 @@ const CreateNotice = () => {
     const fetchTeacherName = async () => {
       try {
         const teacherId = localStorage.getItem('teacherId');
-        const response = await axios.get(`https://classroom-api-beta.vercel.app/teachers/${teacherId}`);
+        const response = await axios.get(`${apiUrl}/api/v1/teachers/${teacherId}`);
         if (response.data && response.data.teacher) {
           setTeacherName(response.data.teacher.name);
         }
@@ -34,7 +36,7 @@ const CreateNotice = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`https://classroom-api-beta.vercel.app/notices/${classId}`, {
+      await axios.post(`${apiUrl}/api/v1/notices/${classId}`, {
         title,
         content,
       });

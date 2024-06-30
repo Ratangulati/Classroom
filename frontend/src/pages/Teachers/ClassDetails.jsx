@@ -4,6 +4,8 @@ import { useParams, Link } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Loader from "../../components/Loader";
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const TeacherClassDetails = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [classDetails, setClassDetails] = useState(null);
@@ -20,7 +22,7 @@ const TeacherClassDetails = () => {
     const fetchClassDetails = async () => {
       try {
         const classResponse = await axios.get(
-          `https://classroom-api-beta.vercel.app/teachers/${teacherId}/classes/${classId}`
+          `${apiUrl}/api/v1/teachers/${teacherId}/classes/${classId}`
         );
         setClassDetails(classResponse.data.class);
         // Initialize attendance state
@@ -44,7 +46,7 @@ const TeacherClassDetails = () => {
     const fetchAttendanceHistory = async () => {
       try {
         const response = await axios.get(
-          `https://classroom-api-beta.vercel.app/teachers/${teacherId}/classes/${classId}/all-attendance`
+          `${apiUrl}/api/v1/teachers/${teacherId}/classes/${classId}/all-attendance`
         );
         setAttendanceHistory(response.data.attendanceRecords);
       } catch (error) {
@@ -70,14 +72,14 @@ const TeacherClassDetails = () => {
 
   const submitAttendance = async () => {
     try {
-      await axios.post(`https://classroom-api-beta.vercel.app/teachers/${teacherId}/classes/${classId}/attendance`, {
+      await axios.post(`${apiUrl}/api/v1/teachers/${teacherId}/classes/${classId}/attendance`, {
         date: attendanceDate,
         attendance: attendance
       });
       alert('Attendance submitted successfully!');
       // Refresh attendance history
       const response = await axios.get(
-        `https://classroom-api-beta.vercel.app/teachers/${teacherId}/classes/${classId}/all-attendance`
+        `${apiUrl}/api/v1/teachers/${teacherId}/classes/${classId}/all-attendance`
       );
       setAttendanceHistory(response.data.attendanceRecords);
     } catch (error) {

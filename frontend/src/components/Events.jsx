@@ -9,13 +9,16 @@ const Events = ({ events, role, refreshEvents }) => {
   const navigate = useNavigate();
   const sortedEvents = [...events].sort((a, b) => new Date(a.date) - new Date(b.date));
 
+  const apiUrl = import.meta.env.VITE_API_URL;
+
+
   const handleAddEvent = () => {
     navigate("/create-event");
   };
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`https://classroom-api-beta.vercel.app/events/${id}`);
+      await axios.delete(`${apiUrl}/api/v1/events/${id}`);
       refreshEvents();
     } catch (error) {
       console.error("Error deleting events:", error);

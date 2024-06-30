@@ -19,12 +19,13 @@ const AddEvent = () => {
   const [showNewEvent, setShowNewEvent] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   const addEvent = async (e) => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "https://classroom-api-beta.vercel.app/events",
+       `${apiUrl}/api/v1/events`,
         newEvent
       );
       setEvents([...events, response.data.event]);

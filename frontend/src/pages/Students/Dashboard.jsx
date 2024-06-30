@@ -6,7 +6,7 @@ import Events from '../../components/Events';
 import { HiClipboardList, HiOutlineAcademicCap, HiOutlineUser, HiOutlineUserGroup } from 'react-icons/hi';
 
 
-const API_BASE_URL = 'https://classroom-api-beta.vercel.app/';
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const StudentDashboard = () => {
   const [isOpen, setIsOpen] = useState(true);
@@ -32,10 +32,10 @@ const StudentDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const [events, announcements, student, allClasses] = await Promise.all([
-        axios.get(`${API_BASE_URL}/events/getall`),
-        axios.get(`${API_BASE_URL}/announcement/getall`),
-        axios.get(`${API_BASE_URL}/students/${studentId}`),
-        axios.get(`${API_BASE_URL}/class/getall`),
+        axios.get(`${apiUrl}/events/getall`),
+        axios.get(`${apiUrl}/announcement/getall`),
+        axios.get(`${apiUrl}/students/${studentId}`),
+        axios.get(`${apiUrl}/class/getall`),
       ]);
 
       const filteredClasses = allClasses.data.classes.filter(cls =>

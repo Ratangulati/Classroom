@@ -11,6 +11,7 @@ const Teachers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredTeachers, setFilteredTeachers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     fetchTeachers();
@@ -19,7 +20,7 @@ const Teachers = () => {
   const fetchTeachers = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get('https://classroom-api-beta.vercel.app/teachers/getall');
+      const response = await axios.get(`${apiUrl}/api/v1/teachers/getall`);
       setTeachers(response.data.teachers);
       setFilteredTeachers(response.data.teachers);
     } catch (error) {

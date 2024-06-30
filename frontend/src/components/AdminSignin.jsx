@@ -2,17 +2,20 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+
 const AdminSignIn = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  const apiUrl = import.meta.env.VITE_API_URL;
+
   const handleSignIn = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post('https://classroom-api-beta.vercel.app/admin/signin', {
+      const response = await axios.post(`${apiUrl}/api/v1/admin/signin`, {
         email,
         password,
       });

@@ -8,11 +8,13 @@ const StudentSignIn = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  const apiUrl = import.meta.env.VITE_API_URL;
+
   const handleSignIn = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post('https://classroom-api-beta.vercel.app/students/signin', {
+      const response = await axios.post(`${apiUrl}/api/v1/students/signin`, {
         registrationNumber,
         password,
       });

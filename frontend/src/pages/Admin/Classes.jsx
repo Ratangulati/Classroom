@@ -9,6 +9,7 @@ const Classes = () => {
   const [classes, setClasses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     fetchClasses();
@@ -17,7 +18,7 @@ const Classes = () => {
   const fetchClasses = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get('https://classroom-api-beta.vercel.app/class/getall');
+      const response = await axios.get(`${apiUrl}/api/v1/class/getall`);
       if (response.data && Array.isArray(response.data.classes)) {
         setClasses(response.data.classes);
       } else {

@@ -3,6 +3,8 @@ import Sidebar from './Sidebar';
 import axios from 'axios';
 import { FaUserCircle } from 'react-icons/fa';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const TeacherProfileSection = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [teacher, setTeacher] = useState(null);
@@ -17,11 +19,11 @@ const TeacherProfileSection = () => {
 
   const fetchTeacherDetails = async () => {
     try {
-      const teacherResponse = await axios.get(`https://classroom-api-beta.vercel.app/teachers/${teacherId}`);
+      const teacherResponse = await axios.get(`${apiUrl}/api/v1/teachers/${teacherId}`);
       const teacherData = teacherResponse.data.teacher;
       setTeacher(teacherData);
 
-      const allClassesResponse = await axios.get(`https://classroom-api-beta.vercel.app/teachers/${teacherId}/classes`);
+      const allClassesResponse = await axios.get(`${apiUrl}/api/v1/teachers/${teacherId}/classes`);
       const allClasses = allClassesResponse.data.classes;
       const filteredClasses = allClasses.filter(cls => cls.teachers.some(tch => tch.email === teacherData.email));
       setClasses(filteredClasses);

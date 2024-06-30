@@ -10,12 +10,13 @@ const AddClass = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [newClassName, setNewClassName] = useState('');
   const navigate = useNavigate();
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   const handleAddClass = async (e) => {
     e.preventDefault();
     if (newClassName.trim() !== '') {
       try {
-        const response = await axios.post('https://classroom-api-beta.vercel.app/class', { class: newClassName });
+        const response = await axios.post(`${apiUrl}/api/v1/class`, { class: newClassName });
         navigate(-1); 
       } catch (error) {
         console.error('Error adding class:', error);

@@ -6,6 +6,9 @@ import axios from 'axios'
 const Announcement = ({ announcements, role, refreshAnnouncements }) => {
   const navigate = useNavigate();
 
+  const apiUrl = import.meta.env.VITE_API_URL;
+
+
   const handleAdd = () => {
     navigate("/create-announcement");
   };
@@ -16,7 +19,7 @@ const Announcement = ({ announcements, role, refreshAnnouncements }) => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`https://classroom-api-beta.vercel.app/announcement/${id}`);
+      await axios.delete(`${apiUrl}/api/v1/announcement/${id}`);
       refreshAnnouncements();
     } catch (error) {
       console.error("Error deleting announcement:", error);

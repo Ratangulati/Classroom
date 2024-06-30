@@ -11,6 +11,7 @@ const Students = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     fetchStudents();
@@ -19,7 +20,7 @@ const Students = () => {
   const fetchStudents = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get('https://classroom-api-beta.vercel.app/students/getall');
+      const response = await axios.get(`${apiUrl}/api/v1/students/getall`);
       setStudents(response.data.students);
       setFilteredStudents(response.data.students);
     } catch (error) {

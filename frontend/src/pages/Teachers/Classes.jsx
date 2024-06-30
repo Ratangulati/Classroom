@@ -4,6 +4,8 @@ import Sidebar from './Sidebar';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaChalkboardTeacher, FaPlus, FaAngleRight } from 'react-icons/fa';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const ClassSection = () => {
   const [classes, setClasses] = useState([]);
   const [isOpen, setIsOpen] = useState(true);
@@ -22,7 +24,7 @@ const ClassSection = () => {
 
   const fetchClasses = async (teacherId) => {
     try {
-      const response = await axios.get(`https://classroom-api-beta.vercel.app/teachers/${teacherId}/classes`);
+      const response = await axios.get(`${apiUrl}/api/v1/teachers/${teacherId}/classes`);
       if (response.data && Array.isArray(response.data.classes)) {
         setClasses(response.data.classes);
       } else {

@@ -12,6 +12,7 @@ const AddStudent = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [className, setClassName] = useState('');
   const navigate = useNavigate();
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   const handleCreateStudent = async (e) => {
     e.preventDefault();
@@ -22,7 +23,7 @@ const AddStudent = () => {
     }
 
     try {
-      const response = await axios.post('https://classroom-api-beta.vercel.app/students/', {
+      const response = await axios.post(`${apiUrl}/api/v1/students/`, {
         name: newStudent.name,
         registrationNumber: newStudent.registrationNumber,
         password: newStudent.password,

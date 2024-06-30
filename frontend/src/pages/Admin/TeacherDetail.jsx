@@ -11,6 +11,7 @@ const TeacherDetails = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { teacherId } = useParams();
   const navigate = useNavigate();
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     fetchTeacherDetails();
@@ -19,7 +20,7 @@ const TeacherDetails = () => {
   const fetchTeacherDetails = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`https://classroom-api-beta.vercel.app/teachers/${teacherId}`);
+      const response = await axios.get(`${apiUrl}/api/v1/teachers/${teacherId}`);
       setTeacher(response.data.teacher);
     } catch (error) {
       console.error('Error fetching teacher details:', error);
@@ -31,7 +32,7 @@ const TeacherDetails = () => {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`https://classroom-api-beta.vercel.app/teachers/${teacherId}`);
+      await axios.delete(`${apiUrl}/api/v1/teachers/${teacherId}`);
       navigate('/admin/teachers');
     } catch (error) {
       console.error('Error deleting teacher:', error);

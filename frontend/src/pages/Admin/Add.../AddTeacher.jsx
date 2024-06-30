@@ -16,6 +16,7 @@ const AddTeacher = () => {
   });
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   const handleAddTeacher = async (e) => {
     e.preventDefault();
@@ -31,7 +32,7 @@ const AddTeacher = () => {
 
     try {
       const response = await axios.post(
-        "https://classroom-api-beta.vercel.app/teachers",
+        `${apiUrl}/api/v1/teachers`,
         newTeacher
       );
       navigate("/admin/teachers");

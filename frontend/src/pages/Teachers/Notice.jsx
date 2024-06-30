@@ -5,6 +5,8 @@ import { useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { FaTrash } from 'react-icons/fa';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const NoticeList = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [notices, setNotices] = useState([]);
@@ -20,7 +22,7 @@ const NoticeList = () => {
 
   const fetchNotices = async () => {
     try {
-      const response = await axios.get(`https://classroom-api-beta.vercel.app/notices/getall`, {
+      const response = await axios.get(`${apiUrl}/api/v1/notices/getall`, {
         params: { classId }
       });
       console.log('Notices response:', response.data);
@@ -32,7 +34,7 @@ const NoticeList = () => {
 
   const handleDeleteNotice = async (noticeId) => {
     try {
-      await axios.delete(`https://classroom-api-beta.vercel.app/notices/${noticeId}`);
+      await axios.delete(`${apiUrl}/api/v1/notices/${noticeId}`);
       fetchNotices();
     } catch (error) {
       console.error('Error deleting notice:', error);

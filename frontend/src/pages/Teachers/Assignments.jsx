@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { FaTrash } from 'react-icons/fa';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const Assignments = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [assignments, setAssignments] = useState([]);
@@ -28,10 +30,10 @@ const Assignments = () => {
     }
 
     try {
-      const teacherResponse = await axios.get(`https://classroom-api-beta.vercel.app/teachers/${teacherId}`);
+      const teacherResponse = await axios.get(`${apiUrl}/api/v1/teachers/${teacherId}`);
       setTeacher(teacherResponse.data.teacher);
 
-      const allClassesResponse = await axios.get(`https://classroom-api-beta.vercel.app/teachers/${teacherId}/classes`);
+      const allClassesResponse = await axios.get(`${apiUrl}/api/v1/teachers/${teacherId}/classes`);
       const allClasses = allClassesResponse.data.classes;
 
       const filteredClasses = allClasses.filter(cls =>
@@ -42,7 +44,7 @@ const Assignments = () => {
 
       const assignmentsResponses = await Promise.all(
         filteredClasses.map(cls => {
-          return axios.get(`https://classroom-api-beta.vercel.app/assignments/class/${cls._id}`);
+          return axios.get(`${apiUrl}/api/v1/assignments/class/${cls._id}`);
         })
       );
 
@@ -57,7 +59,7 @@ const Assignments = () => {
   const handleDeleteAssignment = async (assignmentId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.delete(`https://classroom-api-beta.vercel.app/assignments/${assignmentId}`, {
+      const response = await axios.delete(`${apiUrl}/api/v1/assignments/${assignmentId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

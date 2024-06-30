@@ -19,13 +19,15 @@ const ClassDetails = () => {
   const { classId } = useParams();
   const navigate = useNavigate();
 
+  const apiUrl = import.meta.env.VITE_API_URL;
+
 
   useEffect(() => {
     const fetchClassDetails = async () => {
       try {
         const [classResponse, teachersResponse] = await Promise.all([
-          axios.get(`https://classroom-api-beta.vercel.app/class/${classId}`),
-          axios.get(`https://classroom-api-beta.vercel.app/class/${classId}/teachers`)
+          axios.get(`${apiUrl}/api/v1/class/${classId}`),
+          axios.get(`${apiUrl}/api/v1/class/${classId}/teachers`)
         ]);
         
         setClassDetails(classResponse.data.class);
@@ -44,7 +46,7 @@ const ClassDetails = () => {
 
   const handleDelete = async (itemId, type) => {
     try {
-      await axios.delete(`https://classroom-api-beta.vercel.app/class/${classId}/${type}/${itemId}`);
+      await axios.delete(`${apiUrl}/api/v1/class/${classId}/${type}/${itemId}`);
       setClassDetails((prevDetails) => ({
         ...prevDetails,
         [type]: prevDetails[type].filter((item) => item._id !== itemId),
@@ -57,7 +59,7 @@ const ClassDetails = () => {
 
   const handleDeleteClass = async () => {
     try {
-      await axios.delete(`https://classroom-api-beta.vercel.app/class/${classId}`);
+      await axios.delete(`${apiUrl}/api/v1/class/${classId}`);
       navigate("/admin/classes");
     } catch (error) {
       console.error("Error deleting class:", error);
@@ -88,8 +90,8 @@ const ClassDetails = () => {
     }
 
     try {
-      await axios.post(`https://classroom-api-beta.vercel.app/class/${classId}/${endpoint}`, data);
-      const response = await axios.get(`https://classroom-api-beta.vercel.app/class/${classId}`);
+      await axios.post(`${apiUrl}/api/v1/class/${classId}/${endpoint}`, data);
+      const response = await axios.get(`${apiUrl}/api/v1/class/${classId}`);
       setClassDetails(response.data.class);
       setActiveTab(type);
       setIsAdding(false);

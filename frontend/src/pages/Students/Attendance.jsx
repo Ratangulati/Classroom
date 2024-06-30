@@ -9,7 +9,8 @@ const StudentAttendance = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const studentId = localStorage.getItem('studentId');
-
+  const apiUrl = import.meta.env.VITE_API_URL;
+  
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
@@ -17,7 +18,7 @@ const StudentAttendance = () => {
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
-        const response = await axios.get(`https://classroom-api-beta.vercel.app/attendance/student/${studentId}`);
+        const response = await axios.get(`${apiUrl}/api/v1/attendance/student/${studentId}`);
         setAttendance(response.data.attendanceRecords);
       } catch (error) {
         console.error('Error fetching attendance data:', error);

@@ -3,6 +3,8 @@ import Sidebar from './Sidebar';
 import axios from 'axios';
 import { FaUserCircle } from 'react-icons/fa';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const ProfileSection = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [student, setStudent] = useState(null);
@@ -17,11 +19,11 @@ const ProfileSection = () => {
 
   const fetchStudentDetails = async () => {
     try {
-      const studentResponse = await axios.get(`https://classroom-api-beta.vercel.app/students/${studentId}`);
+      const studentResponse = await axios.get(`${apiUrl}/api/v1/students/${studentId}`);
       const studentData = studentResponse.data.student;
       setStudent(studentData);
 
-      const allClassesResponse = await axios.get('https://classroom-api-beta.vercel.app/class/getall');
+      const allClassesResponse = await axios.get(`${apiUrl}/api/v1/class/getall`);
       const allClasses = allClassesResponse.data.classes;
 
       const filteredClasses = allClasses.filter(cls =>
