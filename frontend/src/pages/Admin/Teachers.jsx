@@ -19,7 +19,7 @@ const Teachers = () => {
   const fetchTeachers = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get('http://localhost:3000/api/v1/teachers/getall');
+      const response = await axios.get('https://classroom-api-beta.vercel.app/teachers/getall');
       setTeachers(response.data.teachers);
       setFilteredTeachers(response.data.teachers);
     } catch (error) {

@@ -22,7 +22,7 @@ const AddStudent = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:3000/api/v1/students/', {
+      const response = await axios.post('https://classroom-api-beta.vercel.app/students/', {
         name: newStudent.name,
         registrationNumber: newStudent.registrationNumber,
         password: newStudent.password,

@@ -30,7 +30,7 @@ const CreateAssignment = () => {
         console.error('No class ID available');
         return;
       }
-      const response = await axios.get(`http://localhost:3000/api/v1/class/${classId}`);
+      const response = await axios.get(`https://classroom-api-beta.vercel.app/class/${classId}`);
       console.log('Class details response:', response.data);
       setClassDetails(response.data.class);
     } catch (error) {
@@ -45,7 +45,7 @@ const CreateAssignment = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`http://localhost:3000/api/v1/assignments`, {
+      await axios.post(`https://classroom-api-beta.vercel.app/assignments`, {
         ...assignment,
         classId
       });

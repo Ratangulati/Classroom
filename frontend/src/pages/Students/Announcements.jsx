@@ -16,7 +16,7 @@ const AnnouncementStudent = () => {
 
   const fetchAnnouncements = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/v1/announcements/getall');
+      const response = await axios.get('https://classroom-api-beta.vercel.app/announcements/getall');
       setAnnouncements(response.data.announcements);
     } catch (error) {
       console.error('Error fetching announcements:', error);

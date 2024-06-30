@@ -15,7 +15,7 @@ const AddClass = () => {
     e.preventDefault();
     if (newClassName.trim() !== '') {
       try {
-        const response = await axios.post('http://localhost:3000/api/v1/class', { class: newClassName });
+        const response = await axios.post('https://classroom-api-beta.vercel.app/class', { class: newClassName });
         navigate(-1); 
       } catch (error) {
         console.error('Error adding class:', error);

@@ -22,7 +22,7 @@ const ClassSection = () => {
 
   const fetchClasses = async (teacherId) => {
     try {
-      const response = await axios.get(`http://localhost:3000/api/v1/teachers/${teacherId}/classes`);
+      const response = await axios.get(`https://classroom-api-beta.vercel.app/teachers/${teacherId}/classes`);
       if (response.data && Array.isArray(response.data.classes)) {
         setClasses(response.data.classes);
       } else {

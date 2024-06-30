@@ -15,7 +15,7 @@ const AddSubject = () => {
 
   const fetchTeachers = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/v1/teachers/getall');
+      const response = await axios.get('https://classroom-api-beta.vercel.app/teachers/getall');
       setTeachers(response.data.teachers);
     } catch (error) {
       console.error('Error fetching teachers:', error);
@@ -32,7 +32,7 @@ const AddSubject = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:3000/api/v1/class/${classId}/subjects`,
+        `https://classroom-api-beta.vercel.app/class/${classId}/subjects`,
         {
           name: newSubject.name,
           teacherId: newSubject.teacher,

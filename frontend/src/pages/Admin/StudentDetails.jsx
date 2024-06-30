@@ -21,12 +21,12 @@ const StudentDetails = () => {
     setIsLoading(true);
     try {
       const studentResponse = await axios.get(
-        `http://localhost:3000/api/v1/students/${studentId}`
+        `https://classroom-api-beta.vercel.app/students/${studentId}`
       );
       setStudent(studentResponse.data.student);
 
       const allClassesResponse = await axios.get(
-        "http://localhost:3000/api/v1/class/getall"
+        "https://classroom-api-beta.vercel.app/class/getall"
       );
       const allClasses = allClassesResponse.data.classes;
 
@@ -49,7 +49,7 @@ const StudentDetails = () => {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`http://localhost:3000/api/v1/students/${studentId}`);
+      await axios.delete(`https://classroom-api-beta.vercel.app/students/${studentId}`);
       navigate("/admin/students");
     } catch (error) {
       console.error("Error deleting student:", error);

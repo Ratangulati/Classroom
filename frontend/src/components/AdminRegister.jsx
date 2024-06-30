@@ -19,7 +19,7 @@ const AdminRegister = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:3000/api/v1/admin/register', {
+      const response = await axios.post('https://classroom-api-beta.vercel.app/admin/register', {
         email,
         password,
       });

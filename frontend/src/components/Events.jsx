@@ -15,7 +15,7 @@ const Events = ({ events, role, refreshEvents }) => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:3000/api/v1/events/${id}`);
+      await axios.delete(`https://classroom-api-beta.vercel.app/events/${id}`);
       refreshEvents();
     } catch (error) {
       console.error("Error deleting events:", error);

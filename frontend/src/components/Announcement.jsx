@@ -16,7 +16,7 @@ const Announcement = ({ announcements, role, refreshAnnouncements }) => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:3000/api/v1/announcement/${id}`);
+      await axios.delete(`https://classroom-api-beta.vercel.app/announcement/${id}`);
       refreshAnnouncements();
     } catch (error) {
       console.error("Error deleting announcement:", error);

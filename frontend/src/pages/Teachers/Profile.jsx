@@ -17,11 +17,11 @@ const TeacherProfileSection = () => {
 
   const fetchTeacherDetails = async () => {
     try {
-      const teacherResponse = await axios.get(`http://localhost:3000/api/v1/teachers/${teacherId}`);
+      const teacherResponse = await axios.get(`https://classroom-api-beta.vercel.app/teachers/${teacherId}`);
       const teacherData = teacherResponse.data.teacher;
       setTeacher(teacherData);
 
-      const allClassesResponse = await axios.get(`http://localhost:3000/api/v1/teachers/${teacherId}/classes`);
+      const allClassesResponse = await axios.get(`https://classroom-api-beta.vercel.app/teachers/${teacherId}/classes`);
       const allClasses = allClassesResponse.data.classes;
       const filteredClasses = allClasses.filter(cls => cls.teachers.some(tch => tch.email === teacherData.email));
       setClasses(filteredClasses);

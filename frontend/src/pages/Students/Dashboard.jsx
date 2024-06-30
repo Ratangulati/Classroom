@@ -6,7 +6,7 @@ import Events from '../../components/Events';
 import { HiClipboardList, HiOutlineAcademicCap, HiOutlineUser, HiOutlineUserGroup } from 'react-icons/hi';
 
 
-const API_BASE_URL = 'http://localhost:3000/api/v1';
+const API_BASE_URL = 'https://classroom-api-beta.vercel.app/';
 
 const StudentDashboard = () => {
   const [isOpen, setIsOpen] = useState(true);

@@ -20,7 +20,7 @@ const NoticeList = () => {
 
   const fetchNotices = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/api/v1/notices/getall`, {
+      const response = await axios.get(`https://classroom-api-beta.vercel.app/notices/getall`, {
         params: { classId }
       });
       console.log('Notices response:', response.data);
@@ -32,7 +32,7 @@ const NoticeList = () => {
 
   const handleDeleteNotice = async (noticeId) => {
     try {
-      await axios.delete(`http://localhost:3000/api/v1/notices/${noticeId}`);
+      await axios.delete(`https://classroom-api-beta.vercel.app/notices/${noticeId}`);
       fetchNotices();
     } catch (error) {
       console.error('Error deleting notice:', error);

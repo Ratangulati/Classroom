@@ -12,7 +12,7 @@ const TeacherSignIn = () => {
   e.preventDefault();
 
   try {
-    const response = await axios.post('http://localhost:3000/api/v1/teachers/signin', {
+    const response = await axios.post('https://classroom-api-beta.vercel.app/teachers/signin', {
       email,
       password,
     });

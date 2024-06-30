@@ -24,7 +24,7 @@ const AddEvent = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/v1/events",
+        "https://classroom-api-beta.vercel.app/events",
         newEvent
       );
       setEvents([...events, response.data.event]);

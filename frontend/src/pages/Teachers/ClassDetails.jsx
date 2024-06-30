@@ -20,7 +20,7 @@ const TeacherClassDetails = () => {
     const fetchClassDetails = async () => {
       try {
         const classResponse = await axios.get(
-          `http://localhost:3000/api/v1/teachers/${teacherId}/classes/${classId}`
+          `https://classroom-api-beta.vercel.app/teachers/${teacherId}/classes/${classId}`
         );
         setClassDetails(classResponse.data.class);
         // Initialize attendance state
@@ -44,7 +44,7 @@ const TeacherClassDetails = () => {
     const fetchAttendanceHistory = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:3000/api/v1/teachers/${teacherId}/classes/${classId}/all-attendance`
+          `https://classroom-api-beta.vercel.app/teachers/${teacherId}/classes/${classId}/all-attendance`
         );
         setAttendanceHistory(response.data.attendanceRecords);
       } catch (error) {
@@ -70,14 +70,14 @@ const TeacherClassDetails = () => {
 
   const submitAttendance = async () => {
     try {
-      await axios.post(`http://localhost:3000/api/v1/teachers/${teacherId}/classes/${classId}/attendance`, {
+      await axios.post(`https://classroom-api-beta.vercel.app/teachers/${teacherId}/classes/${classId}/attendance`, {
         date: attendanceDate,
         attendance: attendance
       });
       alert('Attendance submitted successfully!');
       // Refresh attendance history
       const response = await axios.get(
-        `http://localhost:3000/api/v1/teachers/${teacherId}/classes/${classId}/all-attendance`
+        `https://classroom-api-beta.vercel.app/teachers/${teacherId}/classes/${classId}/all-attendance`
       );
       setAttendanceHistory(response.data.attendanceRecords);
     } catch (error) {

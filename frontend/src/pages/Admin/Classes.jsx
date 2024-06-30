@@ -17,7 +17,7 @@ const Classes = () => {
   const fetchClasses = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get('http://localhost:3000/api/v1/class/getall');
+      const response = await axios.get('https://classroom-api-beta.vercel.app/class/getall');
       if (response.data && Array.isArray(response.data.classes)) {
         setClasses(response.data.classes);
       } else {

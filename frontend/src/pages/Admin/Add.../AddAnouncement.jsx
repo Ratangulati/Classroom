@@ -13,7 +13,7 @@ const AddAnnouncement = () => {
   const handleAddAnnouncement = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:3000/api/v1/announcement', {
+      const response = await axios.post('https://classroom-api-beta.vercel.app/announcement', {
         announcement,
       });
       toast.success('Announcement added successfully');

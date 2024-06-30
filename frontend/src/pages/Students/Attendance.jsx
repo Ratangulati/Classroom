@@ -17,7 +17,7 @@ const StudentAttendance = () => {
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/api/v1/attendance/student/${studentId}`);
+        const response = await axios.get(`https://classroom-api-beta.vercel.app/attendance/student/${studentId}`);
         setAttendance(response.data.attendanceRecords);
       } catch (error) {
         console.error('Error fetching attendance data:', error);

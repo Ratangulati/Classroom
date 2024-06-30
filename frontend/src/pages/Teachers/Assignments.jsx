@@ -28,10 +28,10 @@ const Assignments = () => {
     }
 
     try {
-      const teacherResponse = await axios.get(`http://localhost:3000/api/v1/teachers/${teacherId}`);
+      const teacherResponse = await axios.get(`https://classroom-api-beta.vercel.app/teachers/${teacherId}`);
       setTeacher(teacherResponse.data.teacher);
 
-      const allClassesResponse = await axios.get(`http://localhost:3000/api/v1/teachers/${teacherId}/classes`);
+      const allClassesResponse = await axios.get(`https://classroom-api-beta.vercel.app/teachers/${teacherId}/classes`);
       const allClasses = allClassesResponse.data.classes;
 
       const filteredClasses = allClasses.filter(cls =>
@@ -42,7 +42,7 @@ const Assignments = () => {
 
       const assignmentsResponses = await Promise.all(
         filteredClasses.map(cls => {
-          return axios.get(`http://localhost:3000/api/v1/assignments/class/${cls._id}`);
+          return axios.get(`https://classroom-api-beta.vercel.app/assignments/class/${cls._id}`);
         })
       );
 
@@ -57,7 +57,7 @@ const Assignments = () => {
   const handleDeleteAssignment = async (assignmentId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.delete(`http://localhost:3000/api/v1/assignments/${assignmentId}`, {
+      const response = await axios.delete(`https://classroom-api-beta.vercel.app/assignments/${assignmentId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

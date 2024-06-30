@@ -30,10 +30,10 @@ const StudentAssignments = () => {
     setLoading(true);
 
     try {
-      const studentResponse = await axios.get(`http://localhost:3000/api/v1/students/${studentId}`);
+      const studentResponse = await axios.get(`https://classroom-api-beta.vercel.app/students/${studentId}`);
       setStudent(studentResponse.data.student);
 
-      const allClassesResponse = await axios.get('http://localhost:3000/api/v1/class/getall');
+      const allClassesResponse = await axios.get('https://classroom-api-beta.vercel.app/class/getall');
       const allClasses = allClassesResponse.data.classes;
 
       const filteredClasses = allClasses.filter(cls =>
@@ -44,7 +44,7 @@ const StudentAssignments = () => {
 
       const assignmentsResponses = await Promise.all(
         filteredClasses.map(cls => {
-          return axios.get(`http://localhost:3000/api/v1/assignments/class/${cls._id}`);
+          return axios.get(`https://classroom-api-beta.vercel.app/assignments/class/${cls._id}`);
         })
       );
 
@@ -62,7 +62,7 @@ const StudentAssignments = () => {
 
   const handleDoAssignment = async (id, opinion) => {
     try {
-      const response = await axios.post(`http://localhost:3000/api/v1/assignments/${id}/submit`, {
+      const response = await axios.post(`https://classroom-api-beta.vercel.app/assignments/${id}/submit`, {
         opinion,
         studentId: localStorage.getItem('studentId'),
       });

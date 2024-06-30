@@ -36,9 +36,9 @@ const TeacherDashboard = () => {
         announcementsResponse,
         classesResponse,
       ] = await Promise.all([
-        axios.get('http://localhost:3000/api/v1/events/getall'),
-        axios.get('http://localhost:3000/api/v1/announcement/getall'),
-        axios.get(`http://localhost:3000/api/v1/teachers/${teacherId}/classes`),
+        axios.get('https://classroom-api-beta.vercel.app/events/getall'),
+        axios.get('https://classroom-api-beta.vercel.app/announcement/getall'),
+        axios.get(`https://classroom-api-beta.vercel.app/teachers/${teacherId}/classes`),
       ]);
 
       console.log('Events response:', eventsResponse.data);

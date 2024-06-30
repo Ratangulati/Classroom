@@ -30,10 +30,10 @@ const StudentNoticeList = () => {
     }
 
     try {
-      const studentResponse = await axios.get(`http://localhost:3000/api/v1/students/${studentId}`);
+      const studentResponse = await axios.get(`https://classroom-api-beta.vercel.app/students/${studentId}`);
       setStudent(studentResponse.data.student);
 
-      const classResponse = await axios.get('http://localhost:3000/api/v1/class/getall');
+      const classResponse = await axios.get('https://classroom-api-beta.vercel.app/class/getall');
       const allClasses = classResponse.data.classes;
 
       const filteredClasses = allClasses.filter(cls =>
@@ -51,7 +51,7 @@ const StudentNoticeList = () => {
       const noticesResponses = await Promise.all(
         filteredClasses.map(cls => {
           console.log(`Fetching notices for class ID: ${cls._id}`);
-          return axios.get(`http://localhost:3000/api/v1/notices/student/${cls._id}`);
+          return axios.get(`https://classroom-api-beta.vercel.app/notices/student/${cls._id}`);
         })
       );
 
