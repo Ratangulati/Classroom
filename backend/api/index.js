@@ -1,21 +1,19 @@
 import express from 'express';
 import { config } from 'dotenv';
 import cors from 'cors'
-import { dbConnection } from './db/dbConnection.js';
-import { errorHandler } from './middlewares/errorHandler.js';
-
-
-import studentRouter from "./routers/studentRouter.js"
-import eventsRouter from "./routers/eventsRouter.js"
-import libraryRouter from "./routers/libraryRouter.js"
-import teacherRouter from "./routers/teacherRouter.js"
-import adminRegisterRouter from "./routers/adminRegisterRouter.js"
-import attendanceRouter from "./routers/attendanceRouter.js"
-import announcementRouter from "./routers/announcementRouter.js"
-import classRouter from "./routers/classRouter.js"
-import assignmentRouter from "./routers/assignmentRouter.js"
-import adminSigninRouter from "./routers/adminSigninRouter.js"
-import noticeRouter from "./routers/noticeRouter.js"
+import { errorHandler } from '../middlewares/errorHandler.js';
+import studentRouter from "../routers/studentRouter.js"
+import eventsRouter from "../routers/eventsRouter.js"
+import libraryRouter from "../routers/libraryRouter.js"
+import teacherRouter from "../routers/teacherRouter.js"
+import adminRegisterRouter from "../routers/adminRegisterRouter.js"
+import attendanceRouter from "../routers/attendanceRouter.js"
+import announcementRouter from "../routers/announcementRouter.js"
+import classRouter from "../routers/classRouter.js"
+import assignmentRouter from "../routers/assignmentRouter.js"
+import adminSigninRouter from "../routers/adminSigninRouter.js"
+import noticeRouter from "../routers/noticeRouter.js"
+import { dbConnection } from '../db/dbConnection.js';
 
 
 
@@ -29,6 +27,8 @@ app.use((err, req, res, next) => {
 app.use(cors()); 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}))
+
+app.get('/', (req, res) => res.status(200).json({msf: "Welcome to Classroom!"}))
  
 app.use("/api/v1/students", studentRouter);
 app.use("/api/v1/teachers", teacherRouter);

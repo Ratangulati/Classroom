@@ -5,6 +5,6 @@ export const dbConnection = () => {
         console.log('Connected to Database');
     })
     .catch((err) => {
-        console.log("Error connrcting to Database")
+        console.log("Error connecting to Database")
     })
 }
