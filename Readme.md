@@ -1,9 +1,9 @@
 # Classroom
 
-<img width="1440" alt="Screenshot 2024-07-01 at 7 31 47 PM" src="https://github.com/Ratangulati/Classroom/assets/116749593/cfb26b8a-e4df-40cc-a854-9756498a5de8">
-<img width="1440" alt="Screenshot 2024-07-01 at 7 16 19 PM" src="https://github.com/Ratangulati/Classroom/assets/116749593/78c1bd1b-1f0d-4195-9f53-77f4db960bd2">
-<img width="1440" alt="Screenshot 2024-07-01 at 7 16 07 PM" src="https://github.com/Ratangulati/Classroom/assets/116749593/605d6506-4330-4219-8eb6-45e2b89416ac">
-<img width="1440" alt="Screenshot 2024-07-01 at 7 07 14 PM" src="https://github.com/Ratangulati/Classroom/assets/116749593/fbbda03a-6ff2-42eb-9dac-249acf6139ab">
+<img width="1440" alt="home-page" src="https://github.com/Ratangulati/Classroom/assets/116749593/fbbda03a-6ff2-42eb-9dac-249acf6139ab">
+<img width="1440" alt="admin-dashboard" src="https://github.com/Ratangulati/Classroom/assets/116749593/605d6506-4330-4219-8eb6-45e2b89416ac">
+<img width="1440" alt="teacher-dashboard" src="https://github.com/Ratangulati/Classroom/assets/116749593/78c1bd1b-1f0d-4195-9f53-77f4db960bd2">
+<img width="1440" alt="student-dashboard" src="https://github.com/Ratangulati/Classroom/assets/116749593/cfb26b8a-e4df-40cc-a854-9756498a5de8">
 
 ## Classroom is a School Management System that focus on streamlining administrative tasks, improve communication, and enhance overall efficiency in educational institutions. 
 
