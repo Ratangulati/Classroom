@@ -28,8 +28,9 @@ const StudentSidebar = ({ isOpen, toggleSidebar }) => {
       isOpen ? 'w-64' : 'w-16'
       }`}
     >
-      <div className="flex justify-center items-center h-16 bg-gray-900">
-        <img src="../assets/bg1.png" alt="Logo" className="h-8 w-auto" />
+      <div className="flex justify-center items-center h-16 bg-gray-900 text-xl">
+        {/* <img src="../assets/bg1.png" alt="Logo" className="h-8 w-auto" /> */} 
+        Classroom
       </div>
       <nav className="mt-5">
         <SidebarNavItem icon={<HiOutlineChartBar />} to="/student/dashboard" text="Dashboard" />

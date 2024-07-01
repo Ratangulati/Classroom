@@ -6,8 +6,6 @@ import Events from '../../components/Events';
 import { useLocation } from 'react-router-dom';
 import { HiOutlineUserGroup } from 'react-icons/hi';
 
-const apiUrl = import.meta.env.VITE_API_URL;
-
 const TeacherDashboard = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [events, setEvents] = useState([]);
@@ -38,9 +36,9 @@ const TeacherDashboard = () => {
         announcementsResponse,
         classesResponse,
       ] = await Promise.all([
-        axios.get(`${apiUrl}/api/v1/events/getall`),
-        axios.get(`${apiUrl}/api/v1/announcement/getall`),
-        axios.get(`${apiUrl}/api/v1/teachers/${teacherId}/classes`),
+        axios.get('http://localhost:3000/api/v1/events/getall'),
+        axios.get('http://localhost:3000/api/v1/announcement/getall'),
+        axios.get(`http://localhost:3000/api/v1/teachers/${teacherId}/classes`),
       ]);
 
       console.log('Events response:', eventsResponse.data);

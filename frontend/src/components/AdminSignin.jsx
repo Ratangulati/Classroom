@@ -13,13 +13,13 @@ const AdminSignIn = () => {
 
   const handleSignIn = async (e) => {
     e.preventDefault();
-
+  
     try {
-      const response = await axios.post(`${apiUrl}/api/v1/admin/signin`, {
+      const response = await axios.post('/api/v1/admin/signin', {
         email,
         password,
       });
-
+  
       if (response.data.success) {
         navigate('/admin/dashboard');
       } else {
