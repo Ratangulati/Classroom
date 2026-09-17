@@ -24,28 +24,37 @@ const StudentProfile = () => {
     select: (d) => d.student,
   });
 
-  const [form, setForm] = useState({ name: '', password: '' });
+  const [form, setForm] = useState({ name: '', password: '', currentPassword: '' });
   const [initialised, setInitialised] = useState(false);
   const [formError, setFormError] = useState('');
   const [busy, setBusy] = useState(false);
 
   if (student && !initialised) {
-    setForm({ name: student.name, password: '' });
+    setForm({ name: student.name, password: '', currentPassword: '' });
     setInitialised(true);
   }
 
   const save = async (event) => {
     event.preventDefault();
     setFormError('');
+
+    if (form.password && form.password.length < 8) {
+      setFormError('New password must be at least 8 characters');
+      return;
+    }
+
     setBusy(true);
 
     try {
       const payload = { name: form.name };
-      if (form.password) payload.password = form.password;
+      if (form.password) {
+        payload.password = form.password;
+        payload.currentPassword = form.currentPassword;
+      }
 
       const { data } = await api.put('/students/me', payload);
       setUser({ ...user, name: data.student.name });
-      setForm((current) => ({ ...current, password: '' }));
+      setForm((current) => ({ ...current, password: '', currentPassword: '' }));
       toast.success('Profile updated');
       reload();
     } catch (err) {
@@ -109,8 +118,23 @@ const StudentProfile = () => {
               autoComplete="new-password"
               value={form.password}
               onChange={(event) => setForm((c) => ({ ...c, password: event.target.value }))}
-              hint="At least 8 characters"
+              hint="Leave blank to keep your current password"
             />
+
+            {form.password && (
+              <Input
+                label="Current password"
+                name="currentPassword"
+                type="password"
+                autoComplete="current-password"
+                value={form.currentPassword}
+                onChange={(event) =>
+                  setForm((c) => ({ ...c, currentPassword: event.target.value }))
+                }
+                hint="Required to set a new password"
+                required
+              />
+            )}
 
             {formError && (
               <p role="alert" className="rounded-md bg-danger/10 px-3 py-2 text-sm text-danger">

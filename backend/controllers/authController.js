@@ -179,6 +179,95 @@ export const signInStudent = asyncHandler(async (req, res) => {
   return respondWithSession(res, 200, student, 'student', school);
 });
 
+/* ---------- admin self-service ---------- */
+
+export const getAdminProfile = asyncHandler(async (req, res) => {
+  const school = await School.findById(req.user.school);
+
+  res.status(200).json({
+    success: true,
+    admin: shapeUser(req.user, 'admin'),
+    school: shapeSchool(school),
+  });
+});
+
+/**
+ * Email is the admin's login and the password guards the account, so changing
+ * either requires re-entering the current password. Without that, an unlocked
+ * session or a leaked token would be enough to take the account over silently.
+ */
+export const updateAdminProfile = asyncHandler(async (req, res) => {
+  const { name, email, password, currentPassword } = req.body;
+
+  const admin = await Admin.findById(req.user._id).select('+password');
+
+  const wantsEmailChange =
+    email !== undefined && email.toLowerCase().trim() !== admin.email;
+  const wantsPasswordChange = Boolean(password);
+
+  if (wantsEmailChange || wantsPasswordChange) {
+    if (!currentPassword) {
+      throw new ApiError(400, 'Enter your current password to change your email or password');
+    }
+
+    if (!(await admin.matchPassword(currentPassword))) {
+      throw new ApiError(401, 'Current password is incorrect');
+    }
+  }
+
+  if (wantsEmailChange) {
+    const taken = await Admin.exists({
+      email: email.toLowerCase().trim(),
+      _id: { $ne: admin._id },
+    });
+
+    if (taken) {
+      throw new ApiError(409, 'An admin with that email already exists');
+    }
+
+    admin.email = email;
+  }
+
+  if (name !== undefined) admin.name = name;
+  if (wantsPasswordChange) admin.password = password;
+
+  await admin.save();
+
+  const school = await School.findById(admin.school);
+
+  res.status(200).json({
+    success: true,
+    message: 'Profile updated',
+    admin: shapeUser(admin, 'admin'),
+    school: shapeSchool(school),
+  });
+});
+
+/** The join code is deliberately not changeable: people have it written down. */
+export const updateSchool = asyncHandler(async (req, res) => {
+  const { name } = req.body;
+
+  if (!name || !name.trim()) {
+    throw new ApiError(400, 'School name is required');
+  }
+
+  const school = await School.findByIdAndUpdate(
+    req.user.school,
+    { $set: { name: name.trim() } },
+    { new: true, runValidators: true }
+  );
+
+  if (!school) {
+    throw new ApiError(404, 'School not found');
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'School updated',
+    school: shapeSchool(school),
+  });
+});
+
 /** Lets a client rehydrate a session from a stored token. */
 export const getMe = asyncHandler(async (req, res) => {
   const school = await School.findById(req.user.school);

@@ -125,6 +125,7 @@ export const AuthProvider = ({ children }) => {
       registerAdmin,
       signOut: clear,
       setUser,
+      setSchool,
       errorMessage,
     }),
     [user, school, status, signIn, signUp, registerAdmin, clear]

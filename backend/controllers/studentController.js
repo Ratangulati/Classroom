@@ -104,9 +104,21 @@ export const getMyProfile = asyncHandler(async (req, res) => {
 });
 
 export const updateMyProfile = asyncHandler(async (req, res) => {
-  const { name, password } = req.body;
+  const { name, password, currentPassword } = req.body;
 
   const student = await Student.findById(req.user._id).select('+password');
+
+  // Re-entering the current password is what stops an unlocked session or a
+  // leaked token from quietly changing the credentials on the account.
+  if (password) {
+    if (!currentPassword) {
+      throw new ApiError(400, 'Enter your current password to set a new one');
+    }
+
+    if (!(await student.matchPassword(currentPassword))) {
+      throw new ApiError(401, 'Current password is incorrect');
+    }
+  }
 
   if (name !== undefined) student.name = name;
   if (password) student.password = password;

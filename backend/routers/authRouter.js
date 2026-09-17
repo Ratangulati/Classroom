@@ -7,9 +7,12 @@ import {
   signInTeacher,
   signUpStudent,
   signInStudent,
+  getAdminProfile,
+  updateAdminProfile,
+  updateSchool,
   getMe,
 } from '../controllers/authController.js';
-import { protect } from '../middlewares/auth.js';
+import { protect, authorize } from '../middlewares/auth.js';
 
 const router = express.Router();
 
@@ -31,6 +34,12 @@ router.post('/teachers/signin', authLimiter, signInTeacher);
 
 router.post('/students/signup', authLimiter, signUpStudent);
 router.post('/students/signin', authLimiter, signInStudent);
+
+// Admin self-service. These sit above the resource routers, so '/admin/me'
+// is never parsed as an id by anything downstream.
+router.get('/admin/me', protect, authorize('admin'), getAdminProfile);
+router.put('/admin/me', protect, authorize('admin'), updateAdminProfile);
+router.put('/admin/school', protect, authorize('admin'), updateSchool);
 
 router.get('/me', protect, getMe);
 
