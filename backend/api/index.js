@@ -2,30 +2,53 @@ import { loadEnv } from '../config/env.js';
 import { connectToDatabase } from '../db/dbConnection.js';
 import { buildApp } from '../app.js';
 
-const env = loadEnv();
-
-const app = buildApp({ frontendUrl: env.FRONTEND_URL, allowedOrigins: env.ALLOWED_ORIGINS });
-
 /**
- * Vercel invokes this module per request, so the app must not bind a port.
- * The database is connected lazily here rather than at import time: a
- * top-level await that rejects takes down the whole function with an opaque
- * FUNCTION_INVOCATION_FAILED instead of a readable 500.
+ * Nothing is initialised at module scope. A throw during module evaluation
+ * on Vercel surfaces only as FUNCTION_INVOCATION_FAILED with no indication of
+ * the cause, so config and database errors are raised inside the handler
+ * instead, where they can be reported as a readable response.
  */
+let cached = null;
+
+const getApp = () => {
+  if (!cached) {
+    const env = loadEnv();
+    cached = {
+      env,
+      app: buildApp({
+        frontendUrl: env.FRONTEND_URL,
+        allowedOrigins: env.ALLOWED_ORIGINS,
+      }),
+    };
+  }
+
+  return cached;
+};
+
+const fail = (res, status, message) => {
+  res.statusCode = status;
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify({ success: false, message }));
+};
+
 export default async function handler(req, res) {
+  let env;
+  let app;
+
+  try {
+    ({ env, app } = getApp());
+  } catch (err) {
+    // Misconfiguration: name the missing variable rather than crashing blind.
+    console.error('Configuration error:', err.message);
+    return fail(res, 500, err.message);
+  }
+
   try {
     await connectToDatabase(env.MONGO_URL);
   } catch (err) {
-    console.error('Database connection failed:', err);
-    res.statusCode = 503;
-    res.setHeader('Content-Type', 'application/json');
-    res.end(
-      JSON.stringify({ success: false, message: 'Database unavailable, please try again' })
-    );
-    return;
+    console.error('Database connection failed:', err.message);
+    return fail(res, 503, 'Database unavailable, please try again');
   }
 
   return app(req, res);
 }
-
-export { app };
