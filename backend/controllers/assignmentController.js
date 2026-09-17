@@ -1,96 +1,109 @@
-import { Assignment } from "../models/assignmentSchema.js";
-import { Class } from "../models/classSchema.js"; 
-import { Student } from '../models/studentSchema.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { ApiError } from '../utils/ApiError.js';
+import { Assignment } from '../models/assignmentSchema.js';
+import { Submission } from '../models/submissionSchema.js';
+import { Class } from '../models/classSchema.js';
 
-export const createAssignment = async (req, res, next) => {
+export const createAssignment = asyncHandler(async (req, res) => {
   const { title, description, classId, deadline } = req.body;
-  const teacherId = req.teacherId;
-  try {
-    if (!title || !description || !classId || !deadline) {
-      return res.status(400).json({ message: "Please fill out all fields" });
-    }
-    const assignment = await Assignment.create({ title, description, class: classId, deadline, teacher: teacherId });
-    res.status(201).json({
-      success: true,
-      message: "Assignment Created!",
-      assignment
-    });
-  } catch (err) {
-    next(err);
+
+  if (!title || !description || !classId || !deadline) {
+    throw new ApiError(400, 'Title, description, class and deadline are all required');
   }
-};
 
-export const getAllAssignments = async (req, res, next) => {
-  const teacherId = req.teacherId;
-  try {
-    const teacherClasses = await Class.find({ teachers: teacherId }).select('_id');
-    const classIds = teacherClasses.map(c => c._id);
+  const classDoc = await Class.findOne({
+    _id: classId,
+    school: req.user.school,
+    teachers: req.user._id,
+  });
 
-    const assignments = await Assignment.find({
-      class: { $in: classIds }
-    }).populate('class');
-
-    res.status(200).json({
-      success: true,
-      assignments,
-    });
-  } catch (err) {
-    next(err);
+  if (!classDoc) {
+    throw new ApiError(403, 'You do not teach this class');
   }
-};
 
-export const deleteAssignment = async (req, res, next) => {
-  const { id } = req.params;
-  try {
-    const assignment = await Assignment.findByIdAndDelete(id);
-    if (!assignment) {
-      return res.status(404).json({ success: false, message: "Assignment not found" });
-    }
-    res.status(200).json({ success: true, message: "Assignment deleted successfully" });
-  } catch (err) {
-    next(err);
+  const assignment = await Assignment.create({
+    title,
+    description,
+    class: classDoc._id,
+    teacher: req.user._id,
+    school: req.user.school,
+    deadline,
+  });
+
+  res.status(201).json({ success: true, message: 'Assignment created', assignment });
+});
+
+/** Assignments across every class the calling teacher teaches. */
+export const getMyTeachingAssignments = asyncHandler(async (req, res) => {
+  const assignments = await Assignment.find({
+    school: req.user.school,
+    teacher: req.user._id,
+  })
+    .populate('class', 'class')
+    .sort({ deadline: 1 });
+
+  res.status(200).json({ success: true, assignments });
+});
+
+export const getAssignmentsByClassId = asyncHandler(async (req, res) => {
+  const assignments = await Assignment.find({
+    class: req.classDoc._id,
+    school: req.user.school,
+  })
+    .populate('class', 'class')
+    .populate('teacher', 'name')
+    .sort({ deadline: 1 });
+
+  res.status(200).json({ success: true, assignments });
+});
+
+/** Assignments for the calling student's own class, with their submission state. */
+export const getMyAssignments = asyncHandler(async (req, res) => {
+  if (!req.user.class) {
+    return res.status(200).json({ success: true, assignments: [] });
   }
-};
 
-export const getAssignmentsByClassId = async (req, res, next) => {
-  const { classId } = req.params;
-  try {
-    const assignments = await Assignment.find({ class: classId }).populate('class');
-    res.status(200).json({
-      success: true,
-      assignments,
-    });
-  } catch (err) {
-    next(err);
+  const assignments = await Assignment.find({
+    class: req.user.class,
+    school: req.user.school,
+  })
+    .populate('class', 'class')
+    .populate('teacher', 'name')
+    .sort({ deadline: 1 })
+    .lean();
+
+  const submissions = await Submission.find({
+    student: req.user._id,
+    assignment: { $in: assignments.map((a) => a._id) },
+  }).lean();
+
+  const byAssignment = new Map(submissions.map((s) => [s.assignment.toString(), s]));
+
+  res.status(200).json({
+    success: true,
+    assignments: assignments.map((assignment) => ({
+      ...assignment,
+      submission: byAssignment.get(assignment._id.toString()) || null,
+    })),
+  });
+});
+
+export const deleteAssignment = asyncHandler(async (req, res) => {
+  const filter = {
+    _id: req.params.id,
+    school: req.user.school,
+    // A teacher may only delete their own assignment; an admin may delete any.
+    ...(req.user.role === 'teacher' ? { teacher: req.user._id } : {}),
+  };
+
+  const assignment = await Assignment.findOne(filter);
+
+  if (!assignment) {
+    throw new ApiError(404, 'Assignment not found');
   }
-};
 
-export const getAssignmentsByStudentId = async (req, res, next) => {
-  const { studentId } = req.params;
+  await Submission.deleteMany({ assignment: assignment._id });
+  await Assignment.findByIdAndDelete(assignment._id);
 
-  try {
-    const student = await Student.findById(studentId).populate('class');
-
-    if (!student) {
-      console.error('Student not found');
-      return res.status(404).json({ success: false, message: 'Student not found' });
-    }
-
-    if (!student.class) {
-      console.error('Student class not found');
-      return res.status(404).json({ success: false, message: 'Student class not found' });
-    }
-
-    const assignments = await Assignment.find({
-      class: student.class._id,
-    }).populate('class');
-
-    res.status(200).json({
-      success: true,
-      assignments,
-    });
-  } catch (error) {
-    console.error('Error fetching assignments:', error);
-    next(error);
-  }
-};
+  res.status(200).json({ success: true, message: 'Assignment deleted' });
+});

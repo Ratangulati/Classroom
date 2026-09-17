@@ -1,325 +1,140 @@
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { ApiError } from '../utils/ApiError.js';
 import { Student } from '../models/studentSchema.js';
 import { Class } from '../models/classSchema.js';
-import { errorHandler } from '../middlewares/errorHandler.js';
-import mongoose from 'mongoose'
+import { removeStudentEverywhere } from '../utils/cascade.js';
 
-export const getAllStudents = async (req, res, next) => {
-  try {
-    const students = await Student.find();
-    res.status(200).json({
-      success: true,
-      students,
-    });
-  } catch (err) {
-    next(err);
-  }
-};
+export const getAllStudents = asyncHandler(async (req, res) => {
+  const students = await Student.find({ school: req.user.school })
+    .populate('class', 'class')
+    .sort({ name: 1 });
 
-export const getStudentById = async (req, res, next) => {
-  try {
-    const student = await Student.findById(req.params.id);
-    if (!student) {
-      return res.status(404).json({
-        success: false,
-        message: 'Student not found',
-      });
-    }
-    res.status(200).json({
-      success: true,
-      student,
-    });
-  } catch (err) {
-    next(err);
-  }
-};
+  res.status(200).json({ success: true, students });
+});
 
-export const getStudentClass = async (req, res, next) => {
-  const { studentId } = req.params;
-  console.log('Fetching class for student:', studentId);
-
-  try {
-    const student = await Student.findById(studentId);
-    console.log('Student found:', student);
-
-    if (!student) {
-      console.log('Student not found');
-      return res.status(404).json({ message: "Student not found" });
-    }
-
-    const populatedStudent = await student.populate('class');
-    console.log('Populated student:', populatedStudent);
-
-    if (!populatedStudent.class) {
-      console.log('Student has no assigned class');
-      return res.status(404).json({ message: "Student is not assigned to any class" });
-    }
-
-    res.status(200).json({
-      success: true,
-      class: populatedStudent.class
-    });
-  } catch (err) {
-    console.error('Error fetching student class:', err);
-    res.status(500).json({ message: "Internal server error", error: err.message });
-  }
-};
-
-export const createStudent = async (req, res, next) => {
+export const createStudent = asyncHandler(async (req, res) => {
   const { name, registrationNumber, password } = req.body;
 
-  try {
-    if (!name || !registrationNumber || !password) {
-      return res.status(400).json({ success: false, message: 'Please provide name, registration number, and password' });
-    }
-
-    const student = await Student.create({ name, registrationNumber, password });
-    res.status(201).json({
-      success: true,
-      message: 'Student created!',
-      student,
-    });
-  } catch (error) {
-    console.error('Error adding student:', error);
-    errorHandler(error, req, res, next);
+  if (!name || !registrationNumber || !password) {
+    throw new ApiError(400, 'Name, registration number and password are all required');
   }
-};
 
-export const updateStudent = async (req, res, next) => {
-  const { id } = req.params;
+  const student = await Student.create({
+    name,
+    registrationNumber,
+    password,
+    school: req.user.school,
+  });
+
+  res.status(201).json({
+    success: true,
+    message: 'Student created',
+    student: {
+      _id: student._id,
+      name: student.name,
+      registrationNumber: student.registrationNumber,
+      class: student.class,
+    },
+  });
+});
+
+export const getStudentById = asyncHandler(async (req, res) => {
+  const student = await Student.findOne({
+    _id: req.params.id,
+    school: req.user.school,
+  }).populate('class', 'class');
+
+  if (!student) {
+    throw new ApiError(404, 'Student not found');
+  }
+
+  res.status(200).json({ success: true, student });
+});
+
+export const updateStudent = asyncHandler(async (req, res) => {
   const { name, registrationNumber, password } = req.body;
 
-  try {
-    if (!name || !registrationNumber || !password) {
-      return res.status(400).json({ success: false, message: 'Please provide name, registration number, and password' });
-    }
+  const student = await Student.findOne({
+    _id: req.params.id,
+    school: req.user.school,
+  }).select('+password');
 
-    const updatedStudent = await Student.findByIdAndUpdate(id, { name, registrationNumber, password }, { new: true });
-
-    if (!updatedStudent) {
-      return res.status(404).json({ success: false, message: 'Student not found' });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: 'Student updated!',
-      student: updatedStudent,
-    });
-  } catch (error) {
-    console.error('Error updating student:', error);
-    errorHandler(error, req, res, next);
-  }
-};
-
-export const deleteStudent = async (req, res, next) => {
-  const { id } = req.params;
-
-  try {
-    const deletedStudent = await Student.findByIdAndDelete(id);
-
-    if (!deletedStudent) {
-      return res.status(404).json({ success: false, message: 'Student not found' });
-    }
-
-    // Remove student from associated classes
-    await Class.updateMany(
-      { students: id },
-      { $pull: { students: id } }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: 'Student deleted successfully',
-    });
-  } catch (error) {
-    console.error('Error deleting student:', error);
-    errorHandler(error, req, res, next);
-  }
-};
-
-export const studentSignIn = async (req, res, next) => {
-  const { registrationNumber, password } = req.body;
-
-  try {
-    const student = await Student.findOne({ registrationNumber });
-
-    if (!student) {
-      return res.status(404).json({ success: false, message: 'Student not found' });
-    }
-
-    if (student.password !== password) {
-      return res.status(401).json({ success: false, message: 'Invalid password' });
-    }
-
-    res.status(200).json({ 
-      success: true, 
-      student: { 
-        _id: student._id, 
-        name: student.name 
-      } 
-    });
-  } catch (err) {
-    next(err);
-  }
-};
-
-
-
-export const addStudent = async (req, res, next) => {
-  const { classId } = req.params;
-  const { registrationNumber } = req.body;
-
-  if (!mongoose.Types.ObjectId.isValid(classId)) {
-    return res.status(400).json({ message: "Invalid class ID" });
+  if (!student) {
+    throw new ApiError(404, 'Student not found');
   }
 
-  if (!registrationNumber) {
-    return res.status(400).json({ message: "Registration number is required" });
+  if (name !== undefined) student.name = name;
+  if (registrationNumber !== undefined) student.registrationNumber = registrationNumber;
+  // Only re-hash when a new password was actually supplied.
+  if (password) student.password = password;
+
+  await student.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Student updated',
+    student: {
+      _id: student._id,
+      name: student.name,
+      registrationNumber: student.registrationNumber,
+      class: student.class,
+    },
+  });
+});
+
+export const deleteStudent = asyncHandler(async (req, res) => {
+  const student = await Student.findOne({ _id: req.params.id, school: req.user.school });
+
+  if (!student) {
+    throw new ApiError(404, 'Student not found');
   }
 
-  try {
-    const classDetails = await Class.findById(classId);
-    if (!classDetails) {
-      return res.status(404).json({ message: "Class not found" });
-    }
+  await removeStudentEverywhere(student._id);
+  await Student.findByIdAndDelete(student._id);
 
-    // Find the student with the given registration number
-    const existingStudent = await Student.findOne({ registrationNumber });
-    if (!existingStudent) {
-      return res.status(404).json({ message: "Student with this registration number not found" });
-    }
+  res.status(200).json({ success: true, message: 'Student deleted' });
+});
 
-    // Check if the student is already enrolled in the class
-    if (classDetails.students.includes(existingStudent._id)) {
-      return res.status(409).json({ message: "Student is already enrolled in this class" });
-    }
+/* ---------- self-service (`/me`) ---------- */
 
-    // Add the student to the class
-    classDetails.students.push(existingStudent._id);
-    await classDetails.save();
+export const getMyProfile = asyncHandler(async (req, res) => {
+  const student = await Student.findById(req.user._id).populate('class', 'class');
 
-    const updatedClassDetails = await Class.findById(classId)
-      .populate('students')
-      .populate('teachers')
-      .populate({
-        path: 'subjects',
-        populate: { path: 'teacher', model: 'Teacher' }
-      });
+  res.status(200).json({ success: true, student });
+});
 
-    res.status(200).json({ success: true, message: "Student added to class", class: updatedClassDetails });
-  } catch (error) {
-    console.error('Server error:', error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
+export const updateMyProfile = asyncHandler(async (req, res) => {
+  const { name, password } = req.body;
+
+  const student = await Student.findById(req.user._id).select('+password');
+
+  if (name !== undefined) student.name = name;
+  if (password) student.password = password;
+
+  await student.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Profile updated',
+    student: { _id: student._id, name: student.name, registrationNumber: student.registrationNumber },
+  });
+});
+
+export const getMyClass = asyncHandler(async (req, res) => {
+  if (!req.user.class) {
+    throw new ApiError(404, 'You are not assigned to any class');
   }
-};
-  
-  
 
-// // export const createStudent = async (req, res, next) => {
-// //   const { name, registrationNumber, class: studentClass, password } = req.body;
+  const classDoc = await Class.findOne({
+    _id: req.user.class,
+    school: req.user.school,
+  })
+    .populate('teachers', 'name email subject')
+    .populate('subjects.teacher', 'name email');
 
-// //   try {
-// //     if (!name || !registrationNumber || !studentClass || !password) {
-// //       return handleValidationError('Please fill the form', 400);
-// //     }
-// //     const student = await Student.create({ name, registrationNumber, class: studentClass, password });
-// //     res.status(200).json({
-// //       success: true,
-// //       message: 'Student created!',
-// //       student,
-// //     });
-// //   } catch (err) {
-// //     next(err);
-// //   }
-// // };
+  if (!classDoc) {
+    throw new ApiError(404, 'Class not found');
+  }
 
-
-// export const createStudent = async (req, res, next) => {
-//   const { name, registrationNumber, password } = req.body;
-//   const { classId } = req.params;
-
-//   if (!mongoose.Types.ObjectId.isValid(classId)) {
-//     return res.status(400).json({ success: false, message: 'Invalid classId' });
-//   }
-
-//   try {
-//     const student = await Student.create({ name, registrationNumber, class: classId, password });
-//     res.status(200).json({
-//       success: true,
-//       message: 'Student created!',
-//       student,
-//     });
-//   } catch (error) {
-//     console.error('Error adding student:', error);
-//     setErrorMessage(error.response?.data?.message || 'Failed to add student. Please try again.');
-//   }
-// };
-
-
-
-// export const getAllStudents = async (req, res, next) => {
-//   try {
-//     const students = await Student.find();
-//     res.status(200).json({
-//       success: true,
-//       students,
-//     });
-//   } catch (err) {
-//     next(err);
-//   }
-// };
-
-// export const getStudentById = async (req, res, next) => {
-//   try {
-//     const student = await Student.findById(req.params.id);
-//     if (!student) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Student not found",
-//       });
-//     }
-//     res.status(200).json({
-//       success: true,
-//       student,
-//     });
-//   } catch (err) {
-//     next(err);
-//   }
-// };
-
-// export const deleteStudent = async (req, res, next) => {
-//   try {
-//     const student = await Student.findByIdAndDelete(req.params.id);
-//     if (!student) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Student not found",
-//       });
-//     }
-//     res.status(200).json({
-//       success: true,
-//       message: "Student deleted successfully",
-//     });
-//   } catch (err) {
-//     next(err);
-//   }
-// };
-
-// export const studentSignIn = async (req, res, next) => {
-//   const { registrationNumber, password } = req.body;
-
-//   try {
-//     const student = await Student.findOne({ registrationNumber });
-
-//     if (!student) {
-//       return res.status(404).json({ success: false, message: 'Student not found' });
-//     }
-
-//     if (student.password !== password) {
-//       return res.status(401).json({ success: false, message: 'Invalid password' });
-//     }
-
-//     res.status(200).json({ success: true, student });
-//   } catch (err) {
-//     next(err);
-//   }
-// };
+  res.status(200).json({ success: true, class: classDoc });
+});

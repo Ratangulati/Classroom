@@ -1,55 +1,42 @@
-import { handleValidationError } from "../middlewares/errorHandler.js";
-import { Announcement } from "../models/announcemntSchema.js";
-import { Student } from '../models/studentSchema.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { ApiError } from '../utils/ApiError.js';
+import { Announcement } from '../models/announcemntSchema.js';
 
+export const createAnnouncement = asyncHandler(async (req, res) => {
+  const { title, announcement } = req.body;
 
-export const createAnnouncement = async (req, res, next) => {
-  console.log(req.body);
-  const { announcement } = req.body;
-  try {
-      if (!announcement ) {
-        handleValidationError("Please Fill Form!", 400);
+  if (!announcement) {
+    throw new ApiError(400, 'An announcement body is required');
   }
-  const announcements = await Announcement.create({ announcement});
-  res.status(200).json({
-    success: true,
-    message: "Announcement Created!",
-    announcements,
+
+  const created = await Announcement.create({
+    // Older clients posted a body with no title; fall back rather than reject.
+    title: title || 'Announcement',
+    announcement,
+    school: req.user.school,
+    createdBy: req.user._id,
   });
-  } catch (err) {
-    next(err);
+
+  res.status(201).json({ success: true, message: 'Announcement created', announcement: created });
+});
+
+export const getAllAnnouncements = asyncHandler(async (req, res) => {
+  const announcement = await Announcement.find({ school: req.user.school }).sort({
+    createdAt: -1,
+  });
+
+  res.status(200).json({ success: true, announcement });
+});
+
+export const deleteAnnouncement = asyncHandler(async (req, res) => {
+  const deleted = await Announcement.findOneAndDelete({
+    _id: req.params.id,
+    school: req.user.school,
+  });
+
+  if (!deleted) {
+    throw new ApiError(404, 'Announcement not found');
   }
-};
 
-export const getAllAnnouncements = async (req, res, next) => {
-  try {
-    const announcement = await Announcement.find();
-    console.log('Fetched Announcements:', announcement);
-    res.status(200).json({
-      success: true,
-      announcement,
-    }); 
-  } catch (err) {
-    next(err);
-  }
-};
-
-export const deleteAnnouncement = async (req, res, next) => {
-  const { id } = req.params;
-
-  try {
-    const deletedAnnouncement = await Announcement.findByIdAndDelete(id);
-
-    if (!deletedAnnouncement) {
-      return res.status(404).json({ success: false, message: 'Announcement not found' });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: 'Announcement deleted successfully',
-    });
-  } catch (error) {
-    console.error('Error deleting Announcement:', error);
-    errorHandler(error, req, res, next);
-  }
-};
+  res.status(200).json({ success: true, message: 'Announcement deleted' });
+});

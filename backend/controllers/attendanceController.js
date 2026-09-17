@@ -1,130 +1,110 @@
-import Attendance from "../models/attendanceSchema.js";
-import { handleValidationError } from "../middlewares/errorHandler.js";
-import { Class } from "../models/classSchema.js";
-import { Student } from "../models/studentSchema.js";
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { ApiError } from '../utils/ApiError.js';
+import { Attendance } from '../models/attendanceSchema.js';
+import { toUtcMidnight } from '../utils/dates.js';
 
-export const markAttendance = async (req, res, next) => {
-  const { teacherId, classId } = req.params;
+/**
+ * Body shape: { date, attendance: { <studentId>: boolean, ... } }
+ * Only students actually enrolled in the class are recorded, so a stale client
+ * cannot write attendance for someone who has left.
+ */
+export const markAttendance = asyncHandler(async (req, res) => {
   const { date, attendance } = req.body;
-  
-  try {
-    // Verify that the teacher is associated with this class
-    const classDoc = await Class.findOne({ _id: classId, teachers: teacherId });
-    if (!classDoc) {
-      return handleValidationError("You are not authorized to submit attendance for this class", 403);
-    }
+  const classDoc = req.classDoc;
 
-    if (!date || !attendance || typeof attendance !== 'object' || Object.keys(attendance).length === 0) {
-      return handleValidationError("Attendance data is missing or invalid!", 400);
-    }
-
-    // Check if attendance for this date already exists
-    let attendanceDoc = await Attendance.findOne({ class: classId, date: new Date(date) });
-
-    const attendanceRecords = Object.keys(attendance).map(studentId => ({
-      student: studentId,
-      present: attendance[studentId]
-    }));
-
-    if (attendanceDoc) {
-      // Update existing attendance
-      attendanceDoc.attendanceRecords = attendanceRecords;
-      await attendanceDoc.save();
-    } else {
-      // Create new attendance document
-      attendanceDoc = new Attendance({
-        class: classId,
-        date: new Date(date),
-        attendanceRecords
-      });
-      await attendanceDoc.save();
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Attendance marked successfully!",
-      attendanceDoc
-    });
-  } catch (err) {
-    next(err);
+  if (!date) {
+    throw new ApiError(400, 'A date is required');
   }
-};
 
-export const getAttendance = async (req, res, next) => {
-  const { teacherId, classId } = req.params;
+  if (!attendance || typeof attendance !== 'object' || Object.keys(attendance).length === 0) {
+    throw new ApiError(400, 'Attendance data is missing or invalid');
+  }
+
+  const enrolled = new Set(classDoc.students.map((id) => id.toString()));
+  const unknown = Object.keys(attendance).filter((id) => !enrolled.has(id));
+
+  if (unknown.length > 0) {
+    throw new ApiError(400, 'Attendance includes students who are not in this class');
+  }
+
+  const attendanceRecords = Object.entries(attendance).map(([student, present]) => ({
+    student,
+    present: Boolean(present),
+  }));
+
+  const day = toUtcMidnight(date);
+
+  const attendanceDoc = await Attendance.findOneAndUpdate(
+    { class: classDoc._id, date: day },
+    {
+      $set: { attendanceRecords },
+      $setOnInsert: { class: classDoc._id, date: day, school: req.user.school },
+    },
+    { new: true, upsert: true, runValidators: true }
+  );
+
+  res.status(200).json({
+    success: true,
+    message: 'Attendance recorded',
+    attendanceDoc,
+  });
+});
+
+export const getAttendanceForDate = asyncHandler(async (req, res) => {
   const { date } = req.query;
-  
-  try {
-    // Verify that the teacher is associated with this class
-    const classDoc = await Class.findOne({ _id: classId, teachers: teacherId });
-    if (!classDoc) {
-      return handleValidationError("You are not authorized to view attendance for this class", 403);
-    }
 
-    // Fetch attendance for the specified date
-    const attendanceDoc = await Attendance.findOne({ 
-      class: classId, 
-      date: new Date(date) 
-    }).populate('attendanceRecords.student', 'name registrationNumber');
-
-    if (!attendanceDoc) {
-      return handleValidationError("No attendance record found for the specified date", 404);
-    }
-
-    res.status(200).json({
-      success: true,
-      attendanceDoc
-    });
-  } catch (err) {
-    next(err);
+  if (!date) {
+    throw new ApiError(400, 'A date query parameter is required');
   }
-};
 
-export const getAllAttendance = async (req, res, next) => {
-  const { teacherId, classId } = req.params;
-  
-  try {
-    // Verify that the teacher is associated with this class
-    const classDoc = await Class.findOne({ _id: classId, teachers: teacherId });
-    if (!classDoc) {
-      return handleValidationError("You are not authorized to view attendance for this class", 403);
-    }
+  const attendanceDoc = await Attendance.findOne({
+    class: req.classDoc._id,
+    date: toUtcMidnight(date),
+  }).populate('attendanceRecords.student', 'name registrationNumber');
 
-    const attendanceRecords = await Attendance.find({ class: classId })
-      .populate('attendanceRecords.student', 'name registrationNumber');
-    
-    res.status(200).json({
-      success: true,
-      attendanceRecords
-    });
-  } catch (err) {
-    next(err);
+  if (!attendanceDoc) {
+    throw new ApiError(404, 'No attendance recorded for that date');
   }
-};
 
-export const getStudentAttendance = async (req, res, next) => {
-  const { studentId } = req.params;
+  res.status(200).json({ success: true, attendanceDoc });
+});
 
-  try {
-    const student = await Student.findById(studentId);
-    if (!student) {
-      return handleValidationError("Student not found", 404);
-    }
+export const getClassAttendance = asyncHandler(async (req, res) => {
+  const attendanceRecords = await Attendance.find({ class: req.classDoc._id })
+    .populate('attendanceRecords.student', 'name registrationNumber')
+    .sort({ date: -1 });
 
-    const attendanceRecords = await Attendance.find({ 'attendanceRecords.student': studentId })
-      .populate('attendanceRecords.student', 'name registrationNumber');
+  res.status(200).json({ success: true, attendanceRecords });
+});
 
-    const studentAttendance = attendanceRecords.map(record => ({
-      _id: record._id,
-      date: record.date,
-      present: record.attendanceRecords.find(ar => ar.student._id.equals(studentId)).present,
-    }));
+/** A student's own attendance history, flattened to one entry per day. */
+export const getMyAttendance = asyncHandler(async (req, res) => {
+  const docs = await Attendance.find({
+    school: req.user.school,
+    'attendanceRecords.student': req.user._id,
+  })
+    .select('date attendanceRecords')
+    .sort({ date: -1 });
 
-    res.status(200).json({
-      success: true,
-      attendanceRecords: studentAttendance
-    });
-  } catch (err) {
-    next(err);
-  }
-};
+  const attendanceRecords = docs.map((doc) => {
+    const mine = doc.attendanceRecords.find((record) =>
+      record.student.equals(req.user._id)
+    );
+
+    return { _id: doc._id, date: doc.date, present: mine ? mine.present : false };
+  });
+
+  const total = attendanceRecords.length;
+  const presentCount = attendanceRecords.filter((r) => r.present).length;
+
+  res.status(200).json({
+    success: true,
+    attendanceRecords,
+    summary: {
+      total,
+      present: presentCount,
+      absent: total - presentCount,
+      percentage: total === 0 ? null : Math.round((presentCount / total) * 1000) / 10,
+    },
+  });
+});

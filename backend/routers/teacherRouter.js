@@ -1,27 +1,68 @@
-import express from "express";
-
-import { createTeacher, deleteTeacher, getAllTeachers, getClassesForTeacher, getTeacherById, teacherSignIn } from "../controllers/teacherController.js";
-import { getClassById } from "../controllers/classController.js";
-import { getAllAttendance, getAttendance, markAttendance } from "../controllers/attendanceController.js";
+import express from 'express';
+import {
+  getAllTeachers,
+  createTeacher,
+  getTeacherById,
+  updateTeacher,
+  deleteTeacher,
+  getMyProfile,
+  updateMyProfile,
+  getMyClasses,
+  getMyClassById,
+} from '../controllers/teacherController.js';
+import {
+  markAttendance,
+  getAttendanceForDate,
+  getClassAttendance,
+} from '../controllers/attendanceController.js';
+import {
+  getMyTeachingAssignments,
+  getAssignmentsByClassId,
+} from '../controllers/assignmentController.js';
+import { protect, authorize, requireClassAccess } from '../middlewares/auth.js';
 
 const router = express.Router();
 
-router.get('/getall', getAllTeachers);
-router.get('/:id', getTeacherById);
-router.post('/', createTeacher);
-router.delete('/:id', deleteTeacher);
-router.get('/:teacherId/classes', getClassesForTeacher)
-router.get('/:teacherId/classes/:classId', getClassById)
+router.use(protect);
 
-// Attendance
-router.post('/:teacherId/classes/:classId/attendance', markAttendance);
-router.get('/:teacherId/classes/:classId/attendance', getAttendance);
-router.get('/:teacherId/classes/:classId/all-attendance', getAllAttendance);
+/* Self-service routes come first so 'me' is never parsed as an id. */
+router.get('/me', authorize('teacher'), getMyProfile);
+router.put('/me', authorize('teacher'), updateMyProfile);
+router.get('/me/classes', authorize('teacher'), getMyClasses);
+router.get('/me/assignments', authorize('teacher'), getMyTeachingAssignments);
 
-router.post('/signin', teacherSignIn);
+router.get('/me/classes/:classId', authorize('teacher'), requireClassAccess, getMyClassById);
+router.get(
+  '/me/classes/:classId/assignments',
+  authorize('teacher'),
+  requireClassAccess,
+  getAssignmentsByClassId
+);
 
+router.post(
+  '/me/classes/:classId/attendance',
+  authorize('teacher'),
+  requireClassAccess,
+  markAttendance
+);
+router.get(
+  '/me/classes/:classId/attendance',
+  authorize('teacher'),
+  requireClassAccess,
+  getAttendanceForDate
+);
+router.get(
+  '/me/classes/:classId/all-attendance',
+  authorize('teacher'),
+  requireClassAccess,
+  getClassAttendance
+);
 
+router.get('/getall', authorize('admin', 'teacher'), getAllTeachers);
+router.post('/', authorize('admin'), createTeacher);
 
+router.get('/:id', authorize('admin'), getTeacherById);
+router.put('/:id', authorize('admin'), updateTeacher);
+router.delete('/:id', authorize('admin'), deleteTeacher);
 
 export default router;
- 

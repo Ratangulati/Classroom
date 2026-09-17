@@ -1,28 +1,43 @@
-import express from "express";
-import { createClass, getAllClasses, getClassById, deleteStudent, addTeacher, deleteTeacher, addSubject, deleteSubject, getTeacherById, getAllTeachers, getClassTeachers, deleteClass } from "../controllers/classController.js";
-import { addStudent } from "../controllers/studentController.js";
+import express from 'express';
+import {
+  createClass,
+  getAllClasses,
+  getClassById,
+  updateClass,
+  deleteClass,
+  getClassTeachers,
+  addStudentToClass,
+  removeStudentFromClass,
+  addTeacherToClass,
+  removeTeacherFromClass,
+  addSubject,
+  deleteSubject,
+} from '../controllers/classController.js';
+import { protect, authorize, requireClassAccess } from '../middlewares/auth.js';
 
 const router = express.Router();
 
-// Routes for classes
-router.get('/getall', getAllClasses);
-router.post('/', createClass);
-router.delete('/:classId', deleteClass);
-router.get('/:classId', getClassById);
-router.get('/:classId/teachers', getClassTeachers);
+router.use(protect);
 
-// Routes for students
-router.post('/:classId/students', addStudent);
-router.delete('/:classId/students/:studentId', deleteStudent);
+// Literal paths must precede '/:classId', otherwise Express treats the literal
+// segment as an id and Mongoose raises a CastError (the original B8 defect).
+router.get('/getall', authorize('admin', 'teacher'), getAllClasses);
 
-// Routes for teachers
-router.post('/:classId/teachers', addTeacher);
-router.delete('/:classId/teachers/:teacherId', deleteTeacher);
-router.get('/teachers', getAllTeachers);
+router.post('/', authorize('admin'), createClass);
 
-// Routes for subjects
-router.post('/:classId/subjects', addSubject);
-router.delete('/:classId/subjects/:subjectId', deleteSubject);
+router.get('/:classId', requireClassAccess, getClassById);
+router.put('/:classId', authorize('admin'), updateClass);
+router.delete('/:classId', authorize('admin'), deleteClass);
 
+router.get('/:classId/teachers', requireClassAccess, getClassTeachers);
+
+router.post('/:classId/students', authorize('admin'), addStudentToClass);
+router.delete('/:classId/students/:studentId', authorize('admin'), removeStudentFromClass);
+
+router.post('/:classId/teachers', authorize('admin'), addTeacherToClass);
+router.delete('/:classId/teachers/:teacherId', authorize('admin'), removeTeacherFromClass);
+
+router.post('/:classId/subjects', authorize('admin'), addSubject);
+router.delete('/:classId/subjects/:subjectId', authorize('admin'), deleteSubject);
 
 export default router;

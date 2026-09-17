@@ -1,156 +1,148 @@
-import { Teacher } from "../models/teacherSchema.js";
-import { handleValidationError } from "../middlewares/errorHandler.js";
-import { Class } from "../models/classSchema.js";
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { ApiError } from '../utils/ApiError.js';
+import { Teacher } from '../models/teacherSchema.js';
+import { Class } from '../models/classSchema.js';
+import { removeTeacherEverywhere } from '../utils/cascade.js';
 
-export const createTeacher = async (req, res, next) => {
+export const getAllTeachers = asyncHandler(async (req, res) => {
+  const teachers = await Teacher.find({ school: req.user.school })
+    .populate('classes', 'class')
+    .sort({ name: 1 });
+
+  res.status(200).json({ success: true, teachers });
+});
+
+export const createTeacher = asyncHandler(async (req, res) => {
   const { name, email, subject, password } = req.body;
 
-  try {
-    if (!name || !email || !subject || !password) {
-      return handleValidationError('Please fill the form', 400);
-    }
-    const teacher = await Teacher.create({ name, email, subject, password });
-    res.status(200).json({
-      success: true,
-      message: 'Teacher created!',
-      teacher,
-    });
-  } catch (err) {
-    next(err);
+  if (!name || !email || !subject || !password) {
+    throw new ApiError(400, 'Name, email, subject and password are all required');
   }
-};
 
+  const teacher = await Teacher.create({
+    name,
+    email,
+    subject,
+    password,
+    school: req.user.school,
+  });
 
-export const getAllTeachers = async (req, res, next) => {
-  try {
-    const teachers = await Teacher.find();
-    res.status(200).json({
-      success: true,
-      teachers,
-    });
-  } catch (err) {
-    next(err);
+  res.status(201).json({
+    success: true,
+    message: 'Teacher created',
+    teacher: {
+      _id: teacher._id,
+      name: teacher.name,
+      email: teacher.email,
+      subject: teacher.subject,
+      classes: teacher.classes,
+    },
+  });
+});
+
+export const getTeacherById = asyncHandler(async (req, res) => {
+  const teacher = await Teacher.findOne({
+    _id: req.params.id,
+    school: req.user.school,
+  }).populate('classes', 'class');
+
+  if (!teacher) {
+    throw new ApiError(404, 'Teacher not found');
   }
-};
 
-export const getTeacherById = async (req, res, next) => {
-  try {
-    const teacher = await Teacher.findById(req.params.id).populate("classes");
+  res.status(200).json({ success: true, teacher });
+});
 
-    if (!teacher) {
-      return res.status(404).json({
-        success: false,
-        message: "Teacher not found",
-      });
-    }
+export const updateTeacher = asyncHandler(async (req, res) => {
+  const { name, email, subject, password } = req.body;
 
-    res.status(200).json({
-      success: true,
-      teacher,
-    });
-  } catch (err) {
-    console.error("Error fetching teacher by ID:", err);  // Log the error for debugging
-    next(err);
+  const teacher = await Teacher.findOne({
+    _id: req.params.id,
+    school: req.user.school,
+  }).select('+password');
+
+  if (!teacher) {
+    throw new ApiError(404, 'Teacher not found');
   }
-};
 
+  if (name !== undefined) teacher.name = name;
+  if (email !== undefined) teacher.email = email;
+  if (subject !== undefined) teacher.subject = subject;
+  if (password) teacher.password = password;
 
-export const deleteTeacher = async (req, res, next) => {
-  try {
-    const teacher = await Teacher.findByIdAndDelete(req.params.id);
-    if (!teacher) {
-      return res.status(404).json({
-        success: false,
-        message: "Teacher not found",
-      });
-    }
-    res.status(200).json({
-      success: true,
-      message: "Teacher deleted successfully",
-    });
-  } catch (err) {
-    next(err);
+  await teacher.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Teacher updated',
+    teacher: {
+      _id: teacher._id,
+      name: teacher.name,
+      email: teacher.email,
+      subject: teacher.subject,
+      classes: teacher.classes,
+    },
+  });
+});
+
+export const deleteTeacher = asyncHandler(async (req, res) => {
+  const teacher = await Teacher.findOne({ _id: req.params.id, school: req.user.school });
+
+  if (!teacher) {
+    throw new ApiError(404, 'Teacher not found');
   }
-};
 
-// Add teacher to class
-export const addTeacherToClass = async (req, res) => {
-  try {
-    const { classId } = req.params;
-    const { teacherId } = req.body;
+  await removeTeacherEverywhere(teacher._id);
+  await Teacher.findByIdAndDelete(teacher._id);
 
-    const updatedClass = await Class.findByIdAndUpdate(
-      classId,
-      { $addToSet: { teachers: teacherId } },
-      { new: true }
-    );
+  res.status(200).json({ success: true, message: 'Teacher deleted' });
+});
 
-    res.status(200).json({ class: updatedClass });
-  } catch (error) {
-    console.error('Error adding teacher to class:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
+/* ---------- self-service (`/me`) ---------- */
 
-// Remove teacher from class
-export const removeTeacherFromClass = async (req, res, next) => {
-  const { classId, teacherId } = req.params;
+export const getMyProfile = asyncHandler(async (req, res) => {
+  const teacher = await Teacher.findById(req.user._id).populate('classes', 'class');
 
-  try {
-    const classDetails = await Class.findByIdAndUpdate(
-      classId,
-      {
-        $pull: { teachers: teacherId },
-      },
-      { new: true }
-    ).populate("students")
-      .populate("teachers");
+  res.status(200).json({ success: true, teacher });
+});
 
-    if (!classDetails) {
-      return res.status(404).json({ message: "Class or Teacher not found" });
-    }
+export const updateMyProfile = asyncHandler(async (req, res) => {
+  const { name, password } = req.body;
 
-    res
-      .status(200)
-      .json({ success: true, message: "Teacher removed", classDetails });
-  } catch (error) {
-    next(error);
-  }
-};
+  const teacher = await Teacher.findById(req.user._id).select('+password');
 
-// Get all classes for a specific teacher
-export const getClassesForTeacher = async (req, res, next) => {
-  const { teacherId } = req.params;
+  if (name !== undefined) teacher.name = name;
+  if (password) teacher.password = password;
 
-  try {
-    const classes = await Class.find({ teachers: teacherId })
-      .populate("students")
-      .populate("teachers");
+  await teacher.save();
 
-    res.status(200).json({ success: true, classes });
-  } catch (error) {
-    console.error("Error fetching classes for teacher:", error);
-    next(error);
-  }
-};
+  res.status(200).json({
+    success: true,
+    message: 'Profile updated',
+    teacher: {
+      _id: teacher._id,
+      name: teacher.name,
+      email: teacher.email,
+      subject: teacher.subject,
+    },
+  });
+});
 
+export const getMyClasses = asyncHandler(async (req, res) => {
+  const classes = await Class.find({ teachers: req.user._id, school: req.user.school })
+    .populate('students', 'name registrationNumber')
+    .populate('teachers', 'name email subject')
+    .sort({ class: 1 });
 
-export const teacherSignIn = async (req, res, next) => {
-  const { email, password } = req.body;
+  res.status(200).json({ success: true, classes });
+});
 
-  try {
-    const teacher = await Teacher.findOne({ email });
+export const getMyClassById = asyncHandler(async (req, res) => {
+  // requireClassAccess has already proved this teacher owns the class.
+  const classDoc = await Class.findById(req.classDoc._id)
+    .populate('students', 'name registrationNumber')
+    .populate('teachers', 'name email subject')
+    .populate('subjects.teacher', 'name email');
 
-    if (!teacher) {
-      return res.status(404).json({ success: false, message: 'Teacher not found' });
-    }
-
-    if (teacher.password !== password) {
-      return res.status(401).json({ success: false, message: 'Invalid password' });
-    }
-
-    res.status(200).json({ success: true, teacher: { _id: teacher._id, name: teacher.name } });
-  } catch (err) {
-    next(err);
-  }
-};
+  res.status(200).json({ success: true, class: classDoc });
+});
