@@ -20,19 +20,37 @@ import { errorHandler } from './middlewares/errorHandler.js';
  * Builds the Express app without binding a port, so tests can drive it
  * through supertest and the entrypoint can own the listener.
  */
-export const buildApp = ({ frontendUrl = 'http://localhost:5173' } = {}) => {
+export const buildApp = ({
+  frontendUrl = 'http://localhost:5173',
+  allowedOrigins = [],
+} = {}) => {
   const app = express();
 
-  const allowedOrigins = new Set([frontendUrl, 'http://localhost:5173']);
+  const allowList = new Set(
+    [frontendUrl, 'http://localhost:5173', 'http://localhost:4173', ...allowedOrigins].filter(
+      Boolean
+    )
+  );
+
+  // Vercel gives every preview deployment its own hostname, so the frontend's
+  // previews are matched by pattern rather than listed one by one.
+  const previewPattern = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i;
+
+  const isAllowedOrigin = (origin) =>
+    allowList.has(origin) || previewPattern.test(origin);
 
   app.use(
     cors({
       origin(origin, callback) {
         // Same-origin and tooling requests arrive with no Origin header.
-        if (!origin || allowedOrigins.has(origin)) return callback(null, true);
-        return callback(new Error('Not allowed by CORS'));
+        if (!origin || isAllowedOrigin(origin)) return callback(null, true);
+        // Deny by simply withholding the header. Throwing here would surface
+        // as a 500 with a stack trace for what is a normal, expected refusal;
+        // the browser blocks the response either way.
+        return callback(null, false);
       },
-      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
       credentials: true,
     })
   );
