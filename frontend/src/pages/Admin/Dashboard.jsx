@@ -1,96 +1,153 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import Sidebar from './Sidebar';
-import Announcement from '../../components/Announcement';
-import Events from '../../components/Events';
-import { HiOutlineAcademicCap, HiOutlineUser, HiOutlineUserGroup } from 'react-icons/hi';
+import { FiUsers, FiUserCheck, FiLayers, FiBookOpen, FiCalendar, FiBell } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
+import { useApiAll } from '../../hooks/useApi';
+import { useAuth } from '../../context/AuthContext';
+import {
+  PageHeader,
+  StatCard,
+  Card,
+  CardHeader,
+  CardBody,
+  SkeletonCards,
+  ErrorState,
+  EmptyState,
+  Badge,
+} from '../../components/ui';
+import { formatDate } from '../../lib/format';
 
 const AdminDashboard = () => {
-  const [isOpen, setIsOpen] = useState(true);
-  const [dashboardData, setDashboardData] = useState({
-    events: [],
-    announcements: [],
-    classes: [],
-    students: [],
-    teachers: [],
+  const { user, school } = useAuth();
+
+  const { data, loading, error, reload } = useApiAll({
+    classes: '/class/getall',
+    students: '/students/getall',
+    teachers: '/teachers/getall',
+    events: '/events/getall',
+    announcements: '/announcement/getall',
+    library: '/library/getall?limit=1',
   });
-  const adminName = JSON.parse(localStorage.getItem('user'))?.email || 'Admin';
-  const apiUrl = import.meta.env.VITE_API_URL;
-  
-  const toggleSidebar = () => setIsOpen(!isOpen);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  if (error) return <ErrorState message={error} onRetry={reload} />;
 
-  const fetchData = async () => {
-    try {
-      const [events, announcements, classes, students, teachers] = await Promise.all([
-        axios.get(`${apiUrl}/api/v1/events/getall`),
-        axios.get(`${apiUrl}/api/v1/announcement/getall`),
-        axios.get(`${apiUrl}/api/v1/class/getall`),
-        axios.get(`${apiUrl}/api/v1/students/getall`),
-        axios.get(`${apiUrl}/api/v1/teachers/getall`),
-      ]);
-
-      setDashboardData({
-        events: events.data.events || [],
-        announcements: announcements.data.announcement || [],
-        classes: classes.data.classes || [],
-        students: students.data.students || [],
-        teachers: teachers.data.teachers || [],
-      });
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
-
-  const StatCard = ({ title, value, icon }) => (
-    <div className="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
-      <div className="p-3 rounded-full bg-gray-100 text-gray-600">{icon}</div>
-      <div>
-        <p className="text-sm font-medium text-gray-600">{title}</p>
-        <p className="text-2xl font-semibold text-gray-900">{value}</p>
-      </div>
-    </div>
-  );
+  const events = data?.events?.events || [];
+  const announcements = data?.announcements?.announcement || [];
+  const upcoming = events.filter((event) => new Date(event.date) >= new Date()).slice(0, 5);
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-16'}`}>
-        <div className="bg-white shadow-md p-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">Welcome, {adminName}</h1>
+    <>
+      <PageHeader
+        title={`Welcome back, ${user?.name?.split(' ')[0] || 'Admin'}`}
+        description={
+          school ? `${school.name} · share code ${school.code} so staff and students can join` : null
+        }
+      />
+
+      {loading ? (
+        <SkeletonCards count={4} />
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label="Students"
+            value={data.students.students.length}
+            icon={FiUsers}
+            to="/admin/students"
+          />
+          <StatCard
+            label="Teachers"
+            value={data.teachers.teachers.length}
+            icon={FiUserCheck}
+            to="/admin/teachers"
+            tone="success"
+          />
+          <StatCard
+            label="Classes"
+            value={data.classes.classes.length}
+            icon={FiLayers}
+            to="/admin/classes"
+            tone="warning"
+          />
+          <StatCard
+            label="Library books"
+            value={data.library.pagination?.total ?? 0}
+            icon={FiBookOpen}
+            to="/admin/library"
+          />
         </div>
-        <div className="p-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <StatCard
-              title="Total Students"
-              value={dashboardData.students.length}
-              icon={<HiOutlineAcademicCap className="w-6 h-6" />}
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader
+            title="Upcoming events"
+            action={
+              <Link to="/admin/events" className="text-xs font-medium text-accent hover:underline">
+                View all
+              </Link>
+            }
+          />
+          {loading ? (
+            <CardBody className="space-y-3">
+              <div className="h-4 animate-pulse rounded bg-line/70" />
+              <div className="h-4 w-2/3 animate-pulse rounded bg-line/70" />
+            </CardBody>
+          ) : upcoming.length === 0 ? (
+            <EmptyState
+              icon={FiCalendar}
+              title="No upcoming events"
+              description="Events you schedule will appear here."
             />
-            <StatCard
-              title="Total Teachers"
-              value={dashboardData.teachers.length}
-              icon={<HiOutlineUser className="w-6 h-6" />}
+          ) : (
+            <ul className="divide-y divide-line">
+              {upcoming.map((event) => (
+                <li key={event._id} className="flex items-start justify-between gap-4 px-5 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-ink">{event.title}</p>
+                    <p className="mt-0.5 line-clamp-2 text-xs text-muted">{event.description}</p>
+                  </div>
+                  <Badge tone="accent">{formatDate(event.date)}</Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="Recent announcements"
+            action={
+              <Link
+                to="/admin/announcements"
+                className="text-xs font-medium text-accent hover:underline"
+              >
+                View all
+              </Link>
+            }
+          />
+          {loading ? (
+            <CardBody className="space-y-3">
+              <div className="h-4 animate-pulse rounded bg-line/70" />
+              <div className="h-4 w-2/3 animate-pulse rounded bg-line/70" />
+            </CardBody>
+          ) : announcements.length === 0 ? (
+            <EmptyState
+              icon={FiBell}
+              title="No announcements yet"
+              description="Post one to reach everyone in the school."
             />
-            <StatCard
-              title="Total Classes"
-              value={dashboardData.classes.length}
-              icon={<HiOutlineUserGroup className="w-6 h-6" />}
-            />
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <Announcement announcements={dashboardData.announcements.slice(0, 5)} role="admin" refreshAnnouncements={fetchData} />
-            </div>
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <Events events={dashboardData.events.slice(0, 5)} role="admin" refreshEvents={fetchData} />
-            </div>
-          </div>
-        </div>
+          ) : (
+            <ul className="divide-y divide-line">
+              {announcements.slice(0, 5).map((item) => (
+                <li key={item._id} className="px-5 py-3">
+                  <p className="text-sm font-medium text-ink">{item.title}</p>
+                  <p className="mt-0.5 line-clamp-2 text-xs text-muted">{item.announcement}</p>
+                  <p className="mt-1 text-[11px] text-muted">{formatDate(item.createdAt)}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
       </div>
-    </div>
+    </>
   );
 };
 

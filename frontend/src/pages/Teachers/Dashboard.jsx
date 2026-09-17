@@ -1,94 +1,186 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import Sidebar from './Sidebar';
-import Announcement from '../../components/Announcement';
-import Events from '../../components/Events';
-import { useLocation } from 'react-router-dom';
-import { HiOutlineUserGroup } from 'react-icons/hi';
+import { Link } from 'react-router-dom';
+import { FiLayers, FiUsers, FiFileText, FiBell, FiCalendar } from 'react-icons/fi';
+import { useApiAll } from '../../hooks/useApi';
+import { useAuth } from '../../context/AuthContext';
+import {
+  PageHeader,
+  StatCard,
+  Card,
+  CardHeader,
+  CardBody,
+  SkeletonCards,
+  ErrorState,
+  EmptyState,
+  Badge,
+} from '../../components/ui';
+import { formatDate, relativeDeadline } from '../../lib/format';
 
 const TeacherDashboard = () => {
-  const [isOpen, setIsOpen] = useState(true);
-  const [events, setEvents] = useState([]);
-  const [announcements, setAnnouncements] = useState([]);
-  const [classes, setClasses] = useState([]);
-  const location = useLocation();
-  const teacherName = location.state?.name || localStorage.getItem('teacherName') || '';
+  const { user } = useAuth();
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
+  const { data, loading, error, reload } = useApiAll({
+    classes: '/teachers/me/classes',
+    assignments: '/teachers/me/assignments',
+    events: '/events/getall',
+    announcements: '/announcement/getall',
+  });
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  if (error) return <ErrorState message={error} onRetry={reload} />;
 
-  const fetchData = async () => {
-    const teacherId = localStorage.getItem('teacherId');
+  const classes = data?.classes?.classes || [];
+  const assignments = data?.assignments?.assignments || [];
+  const events = data?.events?.events || [];
+  const announcements = data?.announcements?.announcement || [];
 
-    if (!teacherId) {
-      console.error('teacherId not found in localStorage');
-      return;
-    }
-
-    try {
-      const [
-        eventsResponse,
-        announcementsResponse,
-        classesResponse,
-      ] = await Promise.all([
-        axios.get('http://localhost:3000/api/v1/events/getall'),
-        axios.get('http://localhost:3000/api/v1/announcement/getall'),
-        axios.get(`http://localhost:3000/api/v1/teachers/${teacherId}/classes`),
-      ]);
-
-      console.log('Events response:', eventsResponse.data);
-      console.log('Announcements response:', announcementsResponse.data);
-      console.log('Classes response:', classesResponse.data);
-
-      setEvents(eventsResponse.data.events || []);
-      setAnnouncements(announcementsResponse.data.announcement || []);
-      setClasses(classesResponse.data.classes || []);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
-
-  const StatCard = ({ title, value, icon }) => (
-    <div className="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
-      <div className="p-3 rounded-full bg-gray-100 text-gray-600">{icon}</div>
-      <div>
-        <p className="text-sm font-medium text-gray-600">{title}</p>
-        <p className="text-2xl font-semibold text-gray-900">{value}</p>
-      </div>
-    </div>
-  );
+  const studentCount = classes.reduce((total, klass) => total + (klass.students?.length || 0), 0);
+  const upcoming = assignments
+    .filter((a) => new Date(a.deadline) >= new Date())
+    .slice(0, 5);
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-16'}`}>
-        <div className="bg-white shadow-md p-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">Welcome, {teacherName}</h1>
+    <>
+      <PageHeader
+        title={`Welcome back, ${user?.name?.split(' ')[0] || 'Teacher'}`}
+        description={user?.subject ? `Teaching ${user.subject}` : null}
+      />
+
+      {loading ? (
+        <SkeletonCards count={3} />
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard label="My classes" value={classes.length} icon={FiLayers} to="/teacher/classes" />
+          <StatCard label="Students taught" value={studentCount} icon={FiUsers} tone="success" />
+          <StatCard
+            label="Assignments set"
+            value={assignments.length}
+            icon={FiFileText}
+            to="/teacher/assignments"
+            tone="warning"
+          />
         </div>
-        <div className="p-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <StatCard
-              title="Classes Assigned"
-              value={classes.length}
-              icon={<HiOutlineUserGroup className="w-6 h-6" />}
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader
+            title="My classes"
+            action={
+              <Link to="/teacher/classes" className="text-xs font-medium text-accent hover:underline">
+                View all
+              </Link>
+            }
+          />
+          {loading ? (
+            <CardBody>
+              <div className="h-4 animate-pulse rounded bg-line/70" />
+            </CardBody>
+          ) : classes.length === 0 ? (
+            <EmptyState
+              icon={FiLayers}
+              title="No classes assigned"
+              description="Your administrator assigns you to classes."
             />
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <Announcement announcements={announcements.slice(0, 5)}/>
-            </div>
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <Events events={events.slice(0, 5)}/>
-            </div>
-          </div>
-        </div>
+          ) : (
+            <ul className="divide-y divide-line">
+              {classes.map((klass) => (
+                <li key={klass._id}>
+                  <Link
+                    to={`/teacher/classes/${klass._id}`}
+                    className="flex items-center justify-between gap-4 px-5 py-3 transition-colors hover:bg-ground/60"
+                  >
+                    <span className="text-sm font-medium text-ink">{klass.class}</span>
+                    <Badge>{klass.students?.length || 0} students</Badge>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="Upcoming deadlines"
+            action={
+              <Link
+                to="/teacher/assignments"
+                className="text-xs font-medium text-accent hover:underline"
+              >
+                View all
+              </Link>
+            }
+          />
+          {loading ? (
+            <CardBody>
+              <div className="h-4 animate-pulse rounded bg-line/70" />
+            </CardBody>
+          ) : upcoming.length === 0 ? (
+            <EmptyState
+              icon={FiFileText}
+              title="No upcoming deadlines"
+              description="Assignments you set will appear here."
+            />
+          ) : (
+            <ul className="divide-y divide-line">
+              {upcoming.map((assignment) => {
+                const due = relativeDeadline(assignment.deadline);
+
+                return (
+                  <li
+                    key={assignment._id}
+                    className="flex items-start justify-between gap-4 px-5 py-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-ink">{assignment.title}</p>
+                      <p className="mt-0.5 text-xs text-muted">
+                        {assignment.class?.class} · due {formatDate(assignment.deadline)}
+                      </p>
+                    </div>
+                    <Badge tone={due.tone}>{due.label}</Badge>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </Card>
       </div>
-    </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader title="School announcements" />
+          {announcements.length === 0 ? (
+            <EmptyState icon={FiBell} title="Nothing announced" />
+          ) : (
+            <ul className="divide-y divide-line">
+              {announcements.slice(0, 4).map((item) => (
+                <li key={item._id} className="px-5 py-3">
+                  <p className="text-sm font-medium text-ink">{item.title}</p>
+                  <p className="mt-0.5 line-clamp-2 text-xs text-muted">{item.announcement}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card>
+          <CardHeader title="Upcoming events" />
+          {events.filter((e) => new Date(e.date) >= new Date()).length === 0 ? (
+            <EmptyState icon={FiCalendar} title="No upcoming events" />
+          ) : (
+            <ul className="divide-y divide-line">
+              {events
+                .filter((e) => new Date(e.date) >= new Date())
+                .slice(0, 4)
+                .map((event) => (
+                  <li key={event._id} className="flex items-center justify-between gap-4 px-5 py-3">
+                    <p className="truncate text-sm font-medium text-ink">{event.title}</p>
+                    <Badge tone="accent">{formatDate(event.date)}</Badge>
+                  </li>
+                ))}
+            </ul>
+          )}
+        </Card>
+      </div>
+    </>
   );
 };
 

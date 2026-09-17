@@ -1,44 +1,42 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from './Sidebar';
-import axios from 'axios';
+import { FiBell } from 'react-icons/fi';
+import { useApi } from '../../hooks/useApi';
+import { PageHeader, Card, EmptyState, ErrorState, SkeletonRows } from '../../components/ui';
+import { formatDateTime } from '../../lib/format';
 
-const AnnouncementStudent = () => {
-  const [announcements, setAnnouncements] = useState([]);
-  const [isOpen, setIsOpen] = useState(true);
-  const apiUrl = import.meta.env.VITE_API_URL;
-  
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
-
-  useEffect(() => {
-    fetchAnnouncements();
-  }, []);
-
-  const fetchAnnouncements = async () => {
-    try {
-      const response = await axios.get(`${apiUrl}/api/v1/announcements/getall`);
-      setAnnouncements(response.data.announcements);
-    } catch (error) {
-      console.error('Error fetching announcements:', error);
-    }
-  };
+const StudentAnnouncements = () => {
+  const { data: announcements, loading, error, reload } = useApi('/announcement/getall', {
+    select: (d) => d.announcement,
+  });
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
-        <h1 className="text-2xl mb-5">Announcements</h1>
-        <ul className="list-none p-0">
-          {announcements.map((announcement) => (
-            <li key={announcement._id} className="mb-2">
-              <h3 className="mb-2">{announcement.announcement}</h3>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
+    <>
+      <PageHeader title="Announcements" description="School-wide, from the administration" />
+
+      <Card>
+        {error ? (
+          <ErrorState message={error} onRetry={reload} />
+        ) : loading ? (
+          <SkeletonRows rows={4} cols={2} />
+        ) : announcements.length === 0 ? (
+          <EmptyState
+            icon={FiBell}
+            title="Nothing announced"
+            description="School-wide announcements will appear here."
+          />
+        ) : (
+          <ul className="divide-y divide-line">
+            {announcements.map((item) => (
+              <li key={item._id} className="px-5 py-4">
+                <p className="text-sm font-medium text-ink">{item.title}</p>
+                <p className="mt-1 whitespace-pre-line text-sm text-muted">{item.announcement}</p>
+                <p className="mt-1.5 text-xs text-muted">{formatDateTime(item.createdAt)}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+    </>
   );
 };
 
-export default AnnouncementStudent;
+export default StudentAnnouncements;

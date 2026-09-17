@@ -1,116 +1,206 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import Sidebar from './Sidebar';
-import Announcement from '../../components/Announcement';
-import Events from '../../components/Events';
-import { HiClipboardList, HiOutlineAcademicCap, HiOutlineUser, HiOutlineUserGroup } from 'react-icons/hi';
-
-
-const API_BASE_URL = 'http://localhost:3000/api/v1';
+import { Link } from 'react-router-dom';
+import { FiFileText, FiCheckSquare, FiBell, FiCalendar } from 'react-icons/fi';
+import { useApiAll } from '../../hooks/useApi';
+import { useAuth } from '../../context/AuthContext';
+import {
+  PageHeader,
+  StatCard,
+  Card,
+  CardHeader,
+  CardBody,
+  SkeletonCards,
+  ErrorState,
+  EmptyState,
+  Badge,
+} from '../../components/ui';
+import { formatDate, relativeDeadline } from '../../lib/format';
 
 const StudentDashboard = () => {
-  const [isOpen, setIsOpen] = useState(true);
-  const [dashboardData, setDashboardData] = useState({
-    events: [],
-    announcements: [],
-    assignments: [],
-    student: null,
-    classes: [],
+  const { user } = useAuth();
+
+  const { data, loading, error, reload } = useApiAll({
+    assignments: '/students/me/assignments',
+    attendance: '/students/me/attendance',
+    notices: '/students/me/notices',
+    announcements: '/announcement/getall',
+    events: '/events/getall',
   });
-  const [error, setError] = useState(null);
-  const studentName = localStorage.getItem('studentName') || '';
-  const studentId = localStorage.getItem('studentId');
 
-  useEffect(() => {
-    if (!studentId) {
-      setError('Student ID not found. Please log in again.');
-      return;
-    }
-    fetchDashboardData();
-  }, [studentId]);
+  if (error) return <ErrorState message={error} onRetry={reload} />;
 
-  const fetchDashboardData = async () => {
-    try {
-      const [events, announcements, student, allClasses] = await Promise.all([
-        axios.get(`${API_BASE_URL}/events/getall`),
-        axios.get(`${API_BASE_URL}/announcement/getall`),
-        axios.get(`${API_BASE_URL}/students/${studentId}`),
-        axios.get(`${API_BASE_URL}/class/getall`),
-      ]);
+  const assignments = data?.assignments?.assignments || [];
+  const attendance = data?.attendance?.summary;
+  const notices = data?.notices?.notices || [];
+  const announcements = data?.announcements?.announcement || [];
+  const events = (data?.events?.events || []).filter((e) => new Date(e.date) >= new Date());
 
-      const filteredClasses = allClasses.data.classes.filter(cls =>
-        cls.students.some(std => std.registrationNumber === student.data.student.registrationNumber)
-      );
-
-      const assignmentsResponses = await Promise.all(
-        filteredClasses.map(cls => axios.get(`${API_BASE_URL}/assignments/class/${cls._id}`))
-      );
-
-      const allAssignments = assignmentsResponses.flatMap(response => response.data.assignments);
-
-      console.log(dashboardData)
-      setDashboardData({
-        events: events.data.events || [],
-        announcements: announcements.data.announcement || [],
-        assignments: allAssignments,
-        student: student.data.student,
-        classes: filteredClasses,
-      });
-      setError(null);
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      setError('Error fetching data. Please try again later.');
-    }
-  };
-
-  const toggleSidebar = () => setIsOpen(!isOpen);
-
-  if (error) {
-    return <div className="text-red-500 text-center mt-8">{error}</div>;
-  }
-
-  const StatCard = ({ title, value, icon }) => (
-    <div className="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
-      <div className="p-3 rounded-full bg-gray-100 text-gray-600">{icon}</div>
-      <div>
-        <p className="text-sm font-medium text-gray-600">{title}</p>
-        <p className="text-2xl font-semibold text-gray-900">{value}</p>
-      </div>
-    </div>
+  const pending = assignments.filter(
+    (a) => !a.submission && new Date(a.deadline) >= new Date()
   );
-
+  const graded = assignments.filter((a) => a.submission?.grade);
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-16'}`}>
-        <div className="bg-white shadow-md p-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">Welcome, {studentName}</h1>
+    <>
+      <PageHeader
+        title={`Hello, ${user?.name?.split(' ')[0] || 'there'}`}
+        description={
+          user?.class
+            ? null
+            : 'You are not assigned to a class yet — ask your administrator to enrol you.'
+        }
+      />
+
+      {loading ? (
+        <SkeletonCards count={4} />
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label="To submit"
+            value={pending.length}
+            icon={FiFileText}
+            to="/student/assignments"
+            tone={pending.length > 0 ? 'warning' : 'success'}
+          />
+          <StatCard
+            label="Graded"
+            value={graded.length}
+            icon={FiFileText}
+            to="/student/assignments"
+          />
+          <StatCard
+            label="Attendance"
+            value={attendance?.percentage === null ? '—' : `${attendance?.percentage ?? 0}%`}
+            hint={attendance ? `${attendance.present} of ${attendance.total} days` : null}
+            icon={FiCheckSquare}
+            to="/student/attendance"
+            tone={
+              attendance?.percentage === null || attendance?.percentage >= 90
+                ? 'success'
+                : attendance?.percentage >= 75
+                  ? 'warning'
+                  : 'danger'
+            }
+          />
+          <StatCard label="Notices" value={notices.length} icon={FiBell} to="/student/notices" />
         </div>
-        <div className="p-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <StatCard
-              title="Assignments"
-              value={dashboardData.assignments.length}
-              icon={<HiClipboardList className="w-6 h-6" />}
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader
+            title="Due soon"
+            action={
+              <Link
+                to="/student/assignments"
+                className="text-xs font-medium text-accent hover:underline"
+              >
+                View all
+              </Link>
+            }
+          />
+          {loading ? (
+            <CardBody>
+              <div className="h-4 animate-pulse rounded bg-line/70" />
+            </CardBody>
+          ) : pending.length === 0 ? (
+            <EmptyState
+              icon={FiFileText}
+              title="Nothing due"
+              description={
+                user?.class
+                  ? 'You are all caught up.'
+                  : 'Assignments appear once you are enrolled in a class.'
+              }
             />
-            <StatCard
-              title="Class"
-              value={dashboardData.classes.map(cls => cls.class).join(', ')}
-              icon={<HiOutlineUser className="w-6 h-6" />}
-            />
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <Announcement announcements={dashboardData.announcements.slice(0, 5)} />
-            </div>
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <Events events={dashboardData.events.slice(0, 5)} />
-            </div>
-          </div>
-        </div>
+          ) : (
+            <ul className="divide-y divide-line">
+              {pending.slice(0, 5).map((assignment) => {
+                const due = relativeDeadline(assignment.deadline);
+
+                return (
+                  <li
+                    key={assignment._id}
+                    className="flex items-start justify-between gap-4 px-5 py-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-ink">{assignment.title}</p>
+                      <p className="mt-0.5 text-xs text-muted">
+                        {formatDate(assignment.deadline)}
+                      </p>
+                    </div>
+                    <Badge tone={due.tone}>{due.label}</Badge>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="Class notices"
+            action={
+              <Link
+                to="/student/notices"
+                className="text-xs font-medium text-accent hover:underline"
+              >
+                View all
+              </Link>
+            }
+          />
+          {loading ? (
+            <CardBody>
+              <div className="h-4 animate-pulse rounded bg-line/70" />
+            </CardBody>
+          ) : notices.length === 0 ? (
+            <EmptyState icon={FiBell} title="No notices" />
+          ) : (
+            <ul className="divide-y divide-line">
+              {notices.slice(0, 5).map((notice) => (
+                <li key={notice._id} className="px-5 py-3">
+                  <p className="text-sm font-medium text-ink">{notice.title}</p>
+                  <p className="mt-0.5 line-clamp-2 text-xs text-muted">{notice.content}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
       </div>
-    </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader title="School announcements" />
+          {announcements.length === 0 ? (
+            <EmptyState icon={FiBell} title="Nothing announced" />
+          ) : (
+            <ul className="divide-y divide-line">
+              {announcements.slice(0, 4).map((item) => (
+                <li key={item._id} className="px-5 py-3">
+                  <p className="text-sm font-medium text-ink">{item.title}</p>
+                  <p className="mt-0.5 line-clamp-2 text-xs text-muted">{item.announcement}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card>
+          <CardHeader title="Upcoming events" />
+          {events.length === 0 ? (
+            <EmptyState icon={FiCalendar} title="No upcoming events" />
+          ) : (
+            <ul className="divide-y divide-line">
+              {events.slice(0, 4).map((event) => (
+                <li key={event._id} className="flex items-center justify-between gap-4 px-5 py-3">
+                  <p className="truncate text-sm font-medium text-ink">{event.title}</p>
+                  <Badge tone="accent">{formatDate(event.date)}</Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </div>
+    </>
   );
 };
 

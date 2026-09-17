@@ -1,88 +1,131 @@
-import React, { useEffect, useState } from 'react';
-import Sidebar from './Sidebar';
-import axios from 'axios';
-import { FaUserCircle } from 'react-icons/fa';
+import { useState } from 'react';
+import { toast } from 'react-toastify';
+import { FiSave } from 'react-icons/fi';
+import { useApi } from '../../hooks/useApi';
+import { api, errorMessage } from '../../lib/api';
+import { useAuth } from '../../context/AuthContext';
+import {
+  PageHeader,
+  Card,
+  CardHeader,
+  CardBody,
+  Avatar,
+  Badge,
+  Button,
+  Input,
+  ErrorState,
+  Skeleton,
+} from '../../components/ui';
 
-const apiUrl = import.meta.env.VITE_API_URL;
+const StudentProfile = () => {
+  const { user, setUser, school } = useAuth();
 
-const ProfileSection = () => {
-  const [isOpen, setIsOpen] = useState(true);
-  const [student, setStudent] = useState(null);
-  const [error, setError] = useState(null);
-  const [classes, setClasses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const studentId = localStorage.getItem('studentId');
+  const { data: student, loading, error, reload } = useApi('/students/me', {
+    select: (d) => d.student,
+  });
 
-  useEffect(() => {
-    fetchStudentDetails();
-  }, [studentId]);
+  const [form, setForm] = useState({ name: '', password: '' });
+  const [initialised, setInitialised] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  const fetchStudentDetails = async () => {
+  if (student && !initialised) {
+    setForm({ name: student.name, password: '' });
+    setInitialised(true);
+  }
+
+  const save = async (event) => {
+    event.preventDefault();
+    setFormError('');
+    setBusy(true);
+
     try {
-      const studentResponse = await axios.get(`${apiUrl}/api/v1/students/${studentId}`);
-      const studentData = studentResponse.data.student;
-      setStudent(studentData);
+      const payload = { name: form.name };
+      if (form.password) payload.password = form.password;
 
-      const allClassesResponse = await axios.get(`${apiUrl}/api/v1/class/getall`);
-      const allClasses = allClassesResponse.data.classes;
-
-      const filteredClasses = allClasses.filter(cls =>
-        cls.students.some(std => std.registrationNumber === studentData.registrationNumber)
-      );
-      setClasses(filteredClasses);
-
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching student details:', error);
-      setError('Error fetching student details');
-      setLoading(false);
+      const { data } = await api.put('/students/me', payload);
+      setUser({ ...user, name: data.student.name });
+      setForm((current) => ({ ...current, password: '' }));
+      toast.success('Profile updated');
+      reload();
+    } catch (err) {
+      setFormError(errorMessage(err));
+    } finally {
+      setBusy(false);
     }
   };
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
-
-  if (loading) {
-    return <div className="flex justify-center items-center min-h-screen bg-gray-100">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="flex justify-center items-center min-h-screen bg-gray-100">{error}</div>;
-  }
+  if (error) return <ErrorState message={error} onRetry={reload} />;
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-semibold mb-8">Student Profile</h1>
-          <div className="bg-white shadow-lg rounded-lg p-8">
-            <div className="flex items-center mb-6">
-              <FaUserCircle className="text-4xl text-indigo-500 mr-4" />
-              <h2 className="text-2xl font-bold">{student.name}</h2>
+    <>
+      <PageHeader title="Profile" description="Your account details" />
+
+      <Card>
+        <CardHeader title="Account" />
+        <CardBody>
+          {loading ? (
+            <Skeleton className="h-12 w-48" />
+          ) : (
+            <div className="flex items-center gap-4">
+              <Avatar name={student.name} size="lg" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-ink">{student.name}</p>
+                <p className="text-sm tabular-nums text-muted">
+                  Registration {student.registrationNumber}
+                </p>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {student.class ? (
+                    <Badge tone="accent">{student.class.class}</Badge>
+                  ) : (
+                    <Badge>No class assigned</Badge>
+                  )}
+                  <Badge>{school?.name}</Badge>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center mb-4">
-              <p className="font-bold text-gray-700">Registration Number:</p>
-              <p className="ml-2 text-gray-900">{student.registrationNumber}</p>
-            </div>
-            <div className="flex items-center mb-4">
-              <p className="font-bold text-gray-700">Classes:</p>
-              <p className="ml-2 text-gray-900">{classes.map(cls => cls.class).join(', ')}</p>
-            </div>
-            <div className="flex items-center mb-4">
-              <p className="font-bold text-gray-700">Password:</p>
-              <p className="ml-2 text-gray-900">{student.password}</p>
-            </div>
-            {/* <div className="mb-5">
-              <span className="font-bold text-gray-700">School:</span>
-              <span className="ml-2 text-gray-900">{student.school}</span>
-            </div> */}
-          </div>
-        </div>
-      </div>
-    </div>
+          )}
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Update details"
+          description="Leave the password blank to keep your current one"
+        />
+        <CardBody>
+          <form onSubmit={save} className="max-w-sm space-y-4" noValidate>
+            <Input
+              label="Display name"
+              name="name"
+              value={form.name}
+              onChange={(event) => setForm((c) => ({ ...c, name: event.target.value }))}
+              required
+            />
+            <Input
+              label="New password"
+              name="password"
+              type="password"
+              autoComplete="new-password"
+              value={form.password}
+              onChange={(event) => setForm((c) => ({ ...c, password: event.target.value }))}
+              hint="At least 8 characters"
+            />
+
+            {formError && (
+              <p role="alert" className="rounded-md bg-danger/10 px-3 py-2 text-sm text-danger">
+                {formError}
+              </p>
+            )}
+
+            <Button type="submit" icon={FiSave} loading={busy}>
+              Save changes
+            </Button>
+          </form>
+        </CardBody>
+      </Card>
+    </>
   );
 };
 
-export default ProfileSection;
+export default StudentProfile;

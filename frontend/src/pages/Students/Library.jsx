@@ -1,99 +1,262 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from './Sidebar';
+import { useState } from 'react';
 import axios from 'axios';
-import { FiSearch } from 'react-icons/fi';
-import { ImSpinner2 } from 'react-icons/im';
+import { FiBookOpen, FiSearch, FiExternalLink } from 'react-icons/fi';
+import { useApi } from '../../hooks/useApi';
+import {
+  PageHeader,
+  Card,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Badge,
+  Button,
+  EmptyState,
+  ErrorState,
+  SkeletonRows,
+} from '../../components/ui';
 
-const LibrarySection = () => {
-  const [books, setBooks] = useState([]);
-  const [isOpen, setIsOpen] = useState(true);
-  const [query, setQuery] = useState('programming');
+const TABS = [
+  { key: 'school', label: 'School library' },
+  { key: 'google', label: 'Search Google Books' },
+];
+
+const SchoolLibrary = () => {
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+
+  const { data, loading, error, reload } = useApi(
+    `/library/getall?search=${encodeURIComponent(search)}&page=${page}&limit=20`,
+    { deps: [search, page] }
+  );
+
+  const books = data?.books || [];
+  const pagination = data?.pagination;
+
+  return (
+    <Card>
+      <div className="flex items-center gap-2 border-b border-line px-4 py-3">
+        <FiSearch className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+        <input
+          value={search}
+          onChange={(event) => {
+            setSearch(event.target.value);
+            setPage(1);
+          }}
+          placeholder="Search your school's catalogue"
+          aria-label="Search the school library"
+          className="w-full bg-transparent text-sm text-ink placeholder:text-muted/70 focus:outline-none"
+        />
+      </div>
+
+      {error ? (
+        <ErrorState message={error} onRetry={reload} />
+      ) : loading ? (
+        <SkeletonRows rows={6} cols={3} />
+      ) : books.length === 0 ? (
+        <EmptyState
+          icon={FiBookOpen}
+          title={search ? 'No matching books' : 'The catalogue is empty'}
+          description={
+            search
+              ? 'Try a different title or author.'
+              : 'Your school has not added any books yet.'
+          }
+        />
+      ) : (
+        <>
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>Title</Th>
+                <Th>Author</Th>
+                <Th>Availability</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {books.map((book) => (
+                <Tr key={book._id}>
+                  <Td className="font-medium">{book.bookname}</Td>
+                  <Td className="text-muted">{book.author}</Td>
+                  <Td>
+                    <Badge tone={book.available > 0 ? 'success' : 'danger'}>
+                      {book.available > 0 ? `${book.available} available` : 'All on loan'}
+                    </Badge>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+
+          {pagination && pagination.pages > 1 && (
+            <div className="flex items-center justify-between border-t border-line px-4 py-3">
+              <p className="text-xs text-muted">
+                Page {pagination.page} of {pagination.pages}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={pagination.page <= 1}
+                  onClick={() => setPage((p) => p - 1)}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={pagination.page >= pagination.pages}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </Card>
+  );
+};
+
+const GoogleBooks = () => {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
+  const search = async (event) => {
+    event.preventDefault();
 
-  useEffect(() => {
-    fetchBooks();
-  }, [query]);
+    if (!query.trim()) return;
 
-  const fetchBooks = async () => {
     setLoading(true);
-    setError(null);
+    setError('');
+
     try {
-      const response = await axios.get('https://www.googleapis.com/books/v1/volumes', {
-        params: {
-          q: query,
-        },
+      // Google Books is public, so this call deliberately bypasses the app's
+      // own axios instance and its Authorization header.
+      const { data } = await axios.get('https://www.googleapis.com/books/v1/volumes', {
+        params: { q: query, maxResults: 20 },
       });
-      setBooks(response.data.items);
-    } catch (error) {
-      setError('Error fetching books. Please try again later.');
+
+      setResults(data.items || []);
+    } catch {
+      setError('Could not reach Google Books. Check your connection and try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleReadBook = (webReaderLink) => {
-    window.open(webReaderLink, '_blank');
-  };
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    fetchBooks();
-  };
-
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
-        <h1 className="text-3xl font-bold mb-8 text-indigo-800">Library</h1>
-        <form onSubmit={handleSearch} className="mb-8 flex items-center">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search for books..."
-            className="p-2 border border-gray-300 rounded-l-md w-full"
-          />
-          <button
-            type="submit"
-            className="p-2 bg-blue-500 text-white rounded-r-md hover:bg-blue-600 flex items-center justify-center"
-          >
-            <FiSearch size={20} />
-          </button>
-        </form>
-        {loading ? (
-          <div className="flex justify-center items-center">
-            <ImSpinner2 className="animate-spin text-blue-500" size={50} />
-          </div>
-        ) : error ? (
-          <div className="text-red-500">{error}</div>
-        ) : (
-          <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {books.map((book) => (
-              <li key={book.id} className="bg-white p-5 rounded-lg shadow-md">
-                <div className="font-bold text-lg mb-2">{book.volumeInfo.title}</div>
-                <p className="text-gray-700 mb-2">Author: {book.volumeInfo.authors?.join(', ')}</p>
-                {book.accessInfo.epub.isAvailable ? (
-                  <button
-                    onClick={() => handleReadBook(book.accessInfo.webReaderLink)}
-                    className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-                  >
-                    Read Ebook
-                  </button>
+    <Card>
+      <form onSubmit={search} className="flex items-center gap-2 border-b border-line px-4 py-3">
+        <FiSearch className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search millions of titles"
+          aria-label="Search Google Books"
+          className="w-full bg-transparent text-sm text-ink placeholder:text-muted/70 focus:outline-none"
+        />
+        <Button type="submit" size="sm" loading={loading}>
+          Search
+        </Button>
+      </form>
+
+      {error ? (
+        <ErrorState message={error} />
+      ) : loading ? (
+        <SkeletonRows rows={5} cols={2} />
+      ) : results === null ? (
+        <EmptyState
+          icon={FiSearch}
+          title="Search Google Books"
+          description="Look up a title or author to read more about it."
+        />
+      ) : results.length === 0 ? (
+        <EmptyState icon={FiBookOpen} title="No results" description="Try different words." />
+      ) : (
+        <ul className="divide-y divide-line">
+          {results.map((item) => {
+            const info = item.volumeInfo || {};
+            const thumb = info.imageLinks?.thumbnail?.replace('http://', 'https://');
+
+            return (
+              <li key={item.id} className="flex gap-4 px-5 py-4">
+                {thumb ? (
+                  <img
+                    src={thumb}
+                    alt=""
+                    className="h-20 w-14 shrink-0 rounded border border-line object-cover"
+                  />
                 ) : (
-                  <p className="mt-2 text-red-500">Ebook not available</p>
+                  <div className="flex h-20 w-14 shrink-0 items-center justify-center rounded border border-line bg-ground text-muted">
+                    <FiBookOpen className="h-4 w-4" aria-hidden="true" />
+                  </div>
                 )}
+
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-ink">{info.title}</p>
+                  {info.authors && (
+                    <p className="mt-0.5 text-xs text-muted">{info.authors.join(', ')}</p>
+                  )}
+                  {info.description && (
+                    <p className="mt-1 line-clamp-2 text-sm text-muted">{info.description}</p>
+                  )}
+                  {info.previewLink && (
+                    <a
+                      href={info.previewLink}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="mt-1.5 inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline"
+                    >
+                      Preview
+                      <FiExternalLink className="h-3 w-3" aria-hidden="true" />
+                    </a>
+                  )}
+                </div>
               </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
+            );
+          })}
+        </ul>
+      )}
+    </Card>
   );
 };
 
-export default LibrarySection;
+const StudentLibrary = () => {
+  const [tab, setTab] = useState('school');
+
+  return (
+    <>
+      <PageHeader title="Library" description="Your school's catalogue, plus the wider web" />
+
+      <div
+        role="tablist"
+        aria-label="Library source"
+        className="inline-flex rounded-md border border-line bg-surface p-0.5"
+      >
+        {TABS.map(({ key, label }) => (
+          <button
+            key={key}
+            role="tab"
+            aria-selected={tab === key}
+            onClick={() => setTab(key)}
+            className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
+              tab === key ? 'bg-accent text-white' : 'text-muted hover:text-ink'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'school' ? <SchoolLibrary /> : <GoogleBooks />}
+    </>
+  );
+};
+
+export default StudentLibrary;

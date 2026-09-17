@@ -1,341 +1,406 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import Sidebar from "./Sidebar";
-import Loader from "../../components/Loader";
-import { FaUserGraduate, FaBook, FaChalkboardTeacher, FaPlus, FaTrash, FaArrowLeft } from "react-icons/fa";
+import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { FiPlus, FiTrash2, FiUsers, FiUserCheck, FiBookOpen, FiEdit2 } from 'react-icons/fi';
+import { useApi } from '../../hooks/useApi';
+import { api, errorMessage } from '../../lib/api';
+import {
+  PageHeader,
+  Button,
+  Card,
+  CardHeader,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Badge,
+  Avatar,
+  EmptyState,
+  ErrorState,
+  Skeleton,
+  Modal,
+  Input,
+  Select,
+} from '../../components/ui';
 
 const ClassDetails = () => {
-  const [isOpen, setIsOpen] = useState(true);
-  const [classDetails, setClassDetails] = useState(null);
-  const [newStudentId, setNewStudentId] = useState("");
-  const [newTeacherId, setNewTeacherId] = useState("");
-  const [newSubject, setNewSubject] = useState({ name: "", teacher: "" });
-  const [teachers, setTeachers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [activeTab, setActiveTab] = useState("students");
-  const [isAdding, setIsAdding] = useState(false);
   const { classId } = useParams();
   const navigate = useNavigate();
 
-  const apiUrl = import.meta.env.VITE_API_URL;
+  const { data: klass, loading, error, reload, setData } = useApi(`/class/${classId}`, {
+    select: (d) => d.class,
+    deps: [classId],
+  });
 
+  const { data: allTeachers } = useApi('/teachers/getall', { select: (d) => d.teachers });
 
-  useEffect(() => {
-    const fetchClassDetails = async () => {
-      try {
-        const [classResponse, teachersResponse] = await Promise.all([
-          axios.get(`${apiUrl}/api/v1/class/${classId}`),
-          axios.get(`${apiUrl}/api/v1/class/${classId}/teachers`)
-        ]);
-        
-        setClassDetails(classResponse.data.class);
-        setTeachers(teachersResponse.data.teachers);
-      } catch (error) {
-        console.error("Error fetching data: ", error);
-        setErrorMessage("Error fetching data.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-  
-    fetchClassDetails();
-  }, [classId]);
+  const [dialog, setDialog] = useState(null);
+  const [form, setForm] = useState({});
+  const [formError, setFormError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [confirm, setConfirm] = useState(null);
 
-
-  const handleDelete = async (itemId, type) => {
-    try {
-      await axios.delete(`${apiUrl}/api/v1/class/${classId}/${type}/${itemId}`);
-      setClassDetails((prevDetails) => ({
-        ...prevDetails,
-        [type]: prevDetails[type].filter((item) => item._id !== itemId),
-      }));
-    } catch (error) {
-      console.error(`Error deleting ${type}: `, error);
-      setErrorMessage(`Error deleting ${type}.`);
-    }
+  const open = (mode, initial = {}) => {
+    setForm(initial);
+    setFormError('');
+    setDialog(mode);
   };
 
-  const handleDeleteClass = async () => {
-    try {
-      await axios.delete(`${apiUrl}/api/v1/class/${classId}`);
-      navigate("/admin/classes");
-    } catch (error) {
-      console.error("Error deleting class:", error);
-      setErrorMessage("Error deleting class.");
-    }
-  };
+  const onChange = (event) =>
+    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
 
-  const handleAdd = async (event, type) => {
+  const submit = async (event) => {
     event.preventDefault();
-    let data;
-    let endpoint;
-
-    switch (type) {
-      case "students":
-        data = { registrationNumber: newStudentId };
-        endpoint = "students";
-        break;
-      case "teachers":
-        data = { email: newTeacherId };
-        endpoint = "teachers";
-        break;
-      case "subjects":
-        data = { name: newSubject.name, teacherId: newSubject.teacher };
-        endpoint = "subjects";
-        break;
-      default:
-        return;
-    }
+    setFormError('');
+    setBusy(true);
 
     try {
-      await axios.post(`${apiUrl}/api/v1/class/${classId}/${endpoint}`, data);
-      const response = await axios.get(`${apiUrl}/api/v1/class/${classId}`);
-      setClassDetails(response.data.class);
-      setActiveTab(type);
-      setIsAdding(false);
-      if (type === "students") setNewStudentId("");
-      if (type === "teachers") setNewTeacherId("");
-      if (type === "subjects") setNewSubject({ name: "", teacher: "" });
-    } catch (error) {
-      console.error(`Error adding ${type}: `, error);
-      setErrorMessage(`Error adding ${type}.`);
+      if (dialog === 'rename') {
+        const { data } = await api.put(`/class/${classId}`, { class: form.class });
+        setData(data.class);
+        toast.success('Class renamed');
+      } else if (dialog === 'student') {
+        const { data } = await api.post(`/class/${classId}/students`, {
+          registrationNumber: form.registrationNumber,
+        });
+        setData(data.class);
+        toast.success('Student enrolled');
+      } else if (dialog === 'teacher') {
+        const { data } = await api.post(`/class/${classId}/teachers`, {
+          teacherId: form.teacherId,
+        });
+        setData(data.class);
+        toast.success('Teacher assigned');
+      } else if (dialog === 'subject') {
+        const { data } = await api.post(`/class/${classId}/subjects`, {
+          name: form.name,
+          teacherId: form.teacherId,
+        });
+        setData(data.class);
+        toast.success('Subject added');
+      }
+
+      setDialog(null);
+    } catch (err) {
+      setFormError(errorMessage(err));
+    } finally {
+      setBusy(false);
     }
   };
 
+  const runConfirm = async () => {
+    setBusy(true);
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
+    try {
+      if (confirm.kind === 'deleteClass') {
+        await api.delete(`/class/${classId}`);
+        toast.success('Class deleted');
+        navigate('/admin/classes', { replace: true });
+        return;
+      }
+
+      const paths = {
+        student: `/class/${classId}/students/${confirm.id}`,
+        teacher: `/class/${classId}/teachers/${confirm.id}`,
+        subject: `/class/${classId}/subjects/${confirm.id}`,
+      };
+
+      const { data } = await api.delete(paths[confirm.kind]);
+      setData(data.class || data.classDetails);
+      toast.success('Removed');
+      setConfirm(null);
+      reload();
+    } catch (err) {
+      toast.error(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
   };
 
-  if (isLoading) {
-    return <Loader />;
-  }
+  if (error) return <ErrorState message={error} onRetry={reload} />;
 
-  if (!classDetails) {
-    return <div>Error fetching class details.</div>;
-  }
-
-  const renderTabContent = () => {
-    const items = classDetails[activeTab];
+  if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold mb-4 text-indigo-800 capitalize">{activeTab}</h2>
-        {items && items.length > 0 ? (
-          <ul className="space-y-4">
-            {items.map((item) => (
-              <li key={item._id} className="flex items-center justify-between bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition duration-300">
-                <div>
-                  <p className="font-semibold">{item.name}</p>
-                  <p className="text-sm text-gray-600">
-                    {activeTab === "students" && `Registration: ${item.registrationNumber}`}
-                    {activeTab === "teachers" && `Email: ${item.email}`}
-                    {activeTab === "subjects" && `Teacher: ${item.teacher.name}`}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleDelete(item._id, activeTab)}
-                  className="text-red-500 hover:text-red-700 transition duration-300"
-                >
-                  <FaTrash />
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-gray-600">No {activeTab} found</p>
-        )}
-      </div>
+      <>
+        <Skeleton className="h-7 w-48" />
+        <Card className="p-5">
+          <Skeleton className="h-4 w-32" />
+        </Card>
+      </>
     );
-  };
-
-  const renderAddForm = () => {
-    switch (activeTab) {
-      case "students":
-        return (
-          <form onSubmit={(e) => handleAdd(e, "students")} className="space-y-4">
-            <input
-              type="text"
-              placeholder="Registration Number"
-              value={newStudentId}
-              onChange={(e) => setNewStudentId(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-indigo-500"
-              required
-            />
-            <div className="flex justify-end space-x-2">
-              <button
-                type="submit"
-                className="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition duration-300"
-              >
-                Add Student
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsAdding(false)}
-                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition duration-300"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        );
-      case "teachers":
-        return (
-          <form onSubmit={(e) => handleAdd(e, "teachers")} className="space-y-4">
-            <input
-              type="email"
-              placeholder="Teacher Email"
-              value={newTeacherId}
-              onChange={(e) => setNewTeacherId(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-indigo-500"
-              required
-            />
-            <div className="flex justify-end space-x-2">
-              <button
-                type="submit"
-                className="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition duration-300"
-              >
-                Add Teacher
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsAdding(false)}
-                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition duration-300"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        );
-      case "subjects":
-        return (
-          <form onSubmit={(e) => handleAdd(e, "subjects")} className="space-y-4">
-            <input
-              type="text"
-              placeholder="Subject Name"
-              value={newSubject.name}
-              onChange={(e) => setNewSubject({ ...newSubject, name: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-indigo-500"
-              required
-            />
-            <select
-              value={newSubject.teacher}
-              onChange={(e) => setNewSubject({ ...newSubject, teacher: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-indigo-500"
-              required
-            >
-              <option value="">Select a teacher</option>
-              {teachers.map((teacher) => (
-                <option key={teacher._id} value={teacher._id}>
-                  {teacher.name} ({teacher.email})
-                </option>
-              ))}
-            </select>
-            <div className="flex justify-end space-x-2">
-              <button
-                type="submit"
-                className="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition duration-300"
-              >
-                Add Subject
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsAdding(false)}
-                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition duration-300"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        );
-      default:
-        return null;
-    }
-  };
+  }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-xl shadow-xl p-8 mb-8">
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-4xl font-bold text-indigo-800">{classDetails.class}</h1>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleDeleteClass}
-                  className="flex items-center bg-red-200 text-red-500 px-4 py-2 rounded-lg hover:bg-red-300 transition duration-300"
-                >
-                  <FaTrash className="mr-2" />Remove class
-                </button>
-                <button
-                  onClick={() => window.history.back()}
-                  className="flex items-center bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition duration-300"
-                >
-                  <FaArrowLeft className="mr-2" /> Back
-                </button>
-              </div>
-            </div>
-            {errorMessage && (
-              <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
-                <p>{errorMessage}</p>
-              </div>
-            )}
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="bg-blue-100 p-4 rounded-lg text-center">
-                <FaBook className="text-3xl text-blue-500 mx-auto mb-2" />
-                <p className="text-lg font-semibold text-blue-800">{classDetails.subjects ? classDetails.subjects.length : 0}</p>
-                <p className="text-sm text-blue-600">Subjects</p>
-              </div>
-              <div className="bg-green-100 p-4 rounded-lg text-center">
-                <FaUserGraduate className="text-3xl text-green-500 mx-auto mb-2" />
-                <p className="text-lg font-semibold text-green-800">{classDetails.students ? classDetails.students.length : 0}</p>
-                <p className="text-sm text-green-600">Students</p>
-              </div>
-              <div className="bg-purple-100 p-4 rounded-lg text-center">
-                <FaChalkboardTeacher className="text-3xl text-purple-500 mx-auto mb-2" />
-                <p className="text-lg font-semibold text-purple-800">{classDetails.teachers ? classDetails.teachers.length : 0}</p>
-                <p className="text-sm text-purple-600">Teachers</p>
-              </div>
-            </div>
-            <div className="mb-6">
-              <div className="flex border-b">
-                {["students", "subjects", "teachers"].map((tab) => (
-                  <button
-                    key={tab}
-                    className={`py-2 px-4 focus:outline-none ${
-                      activeTab === tab
-                        ? "border-b-2 border-indigo-500 text-indigo-600"
-                        : "text-gray-500 hover:text-gray-700"
-                    }`}
-                    onClick={() => {
-                      setActiveTab(tab);
-                      setIsAdding(false);
-                    }}
-                  >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-            {isAdding ? (
-              renderAddForm()
-            ) : (
-              <>
-                {renderTabContent()}
-                <button
-                  onClick={() => setIsAdding(true)}
-                  className="mt-4 flex items-center bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition duration-300"
-                >
-                  <FaPlus className="mr-2" /> Add {activeTab.slice(0, -1)}
-                </button>
-              </>
-            )}
+    <>
+      <PageHeader
+        title={klass.class}
+        description={`${klass.students.length} students · ${klass.teachers.length} teachers · ${klass.subjects.length} subjects`}
+        action={
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              icon={FiEdit2}
+              onClick={() => open('rename', { class: klass.class })}
+            >
+              Rename
+            </Button>
+            <Button
+              variant="danger"
+              icon={FiTrash2}
+              onClick={() => setConfirm({ kind: 'deleteClass' })}
+            >
+              Delete
+            </Button>
           </div>
-        </div>
-      </div>
-    </div>
+        }
+      />
+
+      <Card>
+        <CardHeader
+          title="Students"
+          description="Enrol an existing student by their registration number"
+          action={
+            <Button size="sm" icon={FiPlus} onClick={() => open('student', { registrationNumber: '' })}>
+              Enrol
+            </Button>
+          }
+        />
+        {klass.students.length === 0 ? (
+          <EmptyState icon={FiUsers} title="No students enrolled" />
+        ) : (
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>Name</Th>
+                <Th>Registration</Th>
+                <Th className="text-right">Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {klass.students.map((student) => (
+                <Tr key={student._id}>
+                  <Td>
+                    <div className="flex items-center gap-2.5 font-medium">
+                      <Avatar name={student.name} size="sm" />
+                      <span className="truncate">{student.name}</span>
+                    </div>
+                  </Td>
+                  <Td className="tabular-nums text-muted">{student.registrationNumber}</Td>
+                  <Td className="text-right">
+                    <Button
+                      variant="dangerGhost"
+                      size="sm"
+                      icon={FiTrash2}
+                      aria-label={`Remove ${student.name}`}
+                      onClick={() => setConfirm({ kind: 'student', id: student._id, name: student.name })}
+                    />
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        )}
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Teachers"
+          action={
+            <Button size="sm" icon={FiPlus} onClick={() => open('teacher', { teacherId: '' })}>
+              Assign
+            </Button>
+          }
+        />
+        {klass.teachers.length === 0 ? (
+          <EmptyState icon={FiUserCheck} title="No teachers assigned" />
+        ) : (
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>Name</Th>
+                <Th>Email</Th>
+                <Th>Subject</Th>
+                <Th className="text-right">Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {klass.teachers.map((teacher) => (
+                <Tr key={teacher._id}>
+                  <Td>
+                    <div className="flex items-center gap-2.5 font-medium">
+                      <Avatar name={teacher.name} size="sm" />
+                      <span className="truncate">{teacher.name}</span>
+                    </div>
+                  </Td>
+                  <Td className="text-muted">{teacher.email}</Td>
+                  <Td>{teacher.subject && <Badge tone="accent">{teacher.subject}</Badge>}</Td>
+                  <Td className="text-right">
+                    <Button
+                      variant="dangerGhost"
+                      size="sm"
+                      icon={FiTrash2}
+                      aria-label={`Remove ${teacher.name}`}
+                      onClick={() => setConfirm({ kind: 'teacher', id: teacher._id, name: teacher.name })}
+                    />
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        )}
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Subjects"
+          description="Each subject is taught by one of the school's teachers"
+          action={
+            <Button size="sm" icon={FiPlus} onClick={() => open('subject', { name: '', teacherId: '' })}>
+              Add subject
+            </Button>
+          }
+        />
+        {klass.subjects.length === 0 ? (
+          <EmptyState icon={FiBookOpen} title="No subjects yet" />
+        ) : (
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>Subject</Th>
+                <Th>Taught by</Th>
+                <Th className="text-right">Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {klass.subjects.map((subject) => (
+                <Tr key={subject._id}>
+                  <Td className="font-medium">{subject.name}</Td>
+                  <Td className="text-muted">{subject.teacher?.name || '—'}</Td>
+                  <Td className="text-right">
+                    <Button
+                      variant="dangerGhost"
+                      size="sm"
+                      icon={FiTrash2}
+                      aria-label={`Remove ${subject.name}`}
+                      onClick={() => setConfirm({ kind: 'subject', id: subject._id, name: subject.name })}
+                    />
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        )}
+      </Card>
+
+      <Modal
+        open={Boolean(dialog)}
+        onClose={() => setDialog(null)}
+        size="sm"
+        title={
+          {
+            rename: 'Rename class',
+            student: 'Enrol a student',
+            teacher: 'Assign a teacher',
+            subject: 'Add a subject',
+          }[dialog] || ''
+        }
+      >
+        <form onSubmit={submit} className="space-y-4" noValidate>
+          {dialog === 'rename' && (
+            <Input label="Class name" name="class" value={form.class || ''} onChange={onChange} required />
+          )}
+
+          {dialog === 'student' && (
+            <Input
+              label="Registration number"
+              name="registrationNumber"
+              value={form.registrationNumber || ''}
+              onChange={onChange}
+              hint="The student must already exist in this school"
+              required
+            />
+          )}
+
+          {(dialog === 'teacher' || dialog === 'subject') && (
+            <>
+              {dialog === 'subject' && (
+                <Input
+                  label="Subject name"
+                  name="name"
+                  value={form.name || ''}
+                  onChange={onChange}
+                  placeholder="Mathematics"
+                  required
+                />
+              )}
+              <Select
+                label="Teacher"
+                name="teacherId"
+                value={form.teacherId || ''}
+                onChange={onChange}
+                required
+              >
+                <option value="">Select a teacher…</option>
+                {(allTeachers || []).map((teacher) => (
+                  <option key={teacher._id} value={teacher._id}>
+                    {teacher.name} — {teacher.subject}
+                  </option>
+                ))}
+              </Select>
+            </>
+          )}
+
+          {formError && (
+            <p role="alert" className="rounded-md bg-danger/10 px-3 py-2 text-sm text-danger">
+              {formError}
+            </p>
+          )}
+
+          <div className="flex justify-end gap-2 pt-1">
+            <Button type="button" variant="secondary" onClick={() => setDialog(null)}>
+              Cancel
+            </Button>
+            <Button type="submit" loading={busy}>
+              Save
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        open={Boolean(confirm)}
+        onClose={() => setConfirm(null)}
+        size="sm"
+        title={confirm?.kind === 'deleteClass' ? 'Delete this class?' : 'Remove from class?'}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setConfirm(null)}>
+              Cancel
+            </Button>
+            <Button variant="danger" loading={busy} onClick={runConfirm}>
+              {confirm?.kind === 'deleteClass' ? 'Delete class' : 'Remove'}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-muted">
+          {confirm?.kind === 'deleteClass' ? (
+            <>
+              <span className="font-medium text-ink">{klass.class}</span> will be deleted, along
+              with its attendance records, assignments and notices. Students and teachers keep
+              their accounts but are unassigned from it.
+            </>
+          ) : (
+            <>
+              <span className="font-medium text-ink">{confirm?.name}</span> will be removed from{' '}
+              {klass.class}. The account itself is not deleted.
+            </>
+          )}
+        </p>
+      </Modal>
+    </>
   );
 };
 

@@ -1,147 +1,200 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from './Sidebar';
-import axios from 'axios';
+import { useState } from 'react';
+import { toast } from 'react-toastify';
+import { FiFileText, FiUpload } from 'react-icons/fi';
+import { useApi } from '../../hooks/useApi';
+import { api, errorMessage } from '../../lib/api';
+import {
+  PageHeader,
+  Button,
+  Card,
+  Badge,
+  EmptyState,
+  ErrorState,
+  SkeletonRows,
+  Modal,
+  Textarea,
+  Input,
+} from '../../components/ui';
+import { formatDate, formatDateTime, relativeDeadline } from '../../lib/format';
 
 const StudentAssignments = () => {
-  const [assignments, setAssignments] = useState([]);
-  const [student, setStudent] = useState(null);
-  const [isOpen, setIsOpen] = useState(true);
-  const [classes, setClasses] = useState([]);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const apiUrl = import.meta.env.VITE_API_URL;
+  const { data: assignments, loading, error, reload } = useApi('/students/me/assignments', {
+    select: (d) => d.assignments,
+  });
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
+  const [submitting, setSubmitting] = useState(null);
+  const [form, setForm] = useState({ content: '', fileUrl: '' });
+  const [formError, setFormError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const openSubmit = (assignment) => {
+    setForm({
+      content: assignment.submission?.content || '',
+      fileUrl: assignment.submission?.fileUrl || '',
+    });
+    setFormError('');
+    setSubmitting(assignment);
   };
 
-  useEffect(() => {
-    fetchAssignments();
-  }, []);
-
-  const fetchAssignments = async () => {
-    const studentId = localStorage.getItem('studentId');
-
-    if (!studentId) {
-      console.error('studentId not found in localStorage');
-      setError('Student ID not found. Please log in again.');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const studentResponse = await axios.get(`${apiUrl}/api/v1/students/${studentId}`);
-      setStudent(studentResponse.data.student);
-
-      const allClassesResponse = await axios.get(`${apiUrl}/api/v1/class/getall`);
-      const allClasses = allClassesResponse.data.classes;
-
-      const filteredClasses = allClasses.filter(cls =>
-        cls.students.some(std => std.registrationNumber === studentResponse.data.student.registrationNumber)
-      );
-
-      setClasses(filteredClasses);
-
-      const assignmentsResponses = await Promise.all(
-        filteredClasses.map(cls => {
-          return axios.get(`${apiUrl}/api/v1/assignments/class/${cls._id}`);
-        })
-      );
-
-      const allAssignments = assignmentsResponses.flatMap(response => response.data.assignments);
-      setAssignments(allAssignments);
-
-      setError(null);
-    } catch (error) {
-      console.error('Error fetching assignments:', error);
-      setError('Error fetching assignments. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDoAssignment = async (id, opinion) => {
-    try {
-      const response = await axios.post(`${apiUrl}/api/v1/assignments/${id}/submit`, {
-        opinion,
-        studentId: localStorage.getItem('studentId'),
-      });
-      if (response.data.success) {
-        fetchAssignments(); 
-      }
-    } catch (error) {
-      console.error('Error submitting assignment:', error);
-    }
-  };
-
-  return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-16'}`}>
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-gray-800">Assignments</h1>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        {loading ? (
-          <p className="text-gray-500">Loading assignments...</p>
-        ) : (
-          <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-            {assignments.length > 0 ? (
-              assignments.map((assignment) => (
-                <div key={assignment._id} className="bg-white rounded-lg shadow-lg p-6 transition-transform transform hover:scale-105">
-                  <h3 className="text-2xl font-semibold text-blue-600 mb-4">{assignment.title}</h3>
-                  <p className="text-gray-700 mb-4">{assignment.description}</p>
-                  <p className="text-gray-600 mb-4">Class: {classes.map(cls => cls.class)}</p>
-                  {!assignment.done ? (
-                    <AssignmentForm onDoAssignment={(opinion) => handleDoAssignment(assignment._id, opinion)} />
-                  ) : (
-                    <p className="text-green-600 font-bold">Assignment Done</p>
-                  )}
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-500">No assignments found.</p>
-            )}
-          </div>
-        )}
-      </div>
-      </div>
-    </div>
-  );
-};
-
-const AssignmentForm = ({ onDoAssignment }) => {
-  const [opinion, setOpinion] = useState('');
-
-  const handleInputChange = (event) => {
-    setOpinion(event.target.value);
-  };
-
-  const handleSubmit = (event) => {
+  const submit = async (event) => {
     event.preventDefault();
-    if (opinion.trim() !== '') {
-      onDoAssignment(opinion);
-      setOpinion(''); 
-    } else {
-      alert("Please provide your opinion/assignment.");
+    setFormError('');
+    setBusy(true);
+
+    try {
+      await api.post(`/assignments/${submitting._id}/submissions`, form);
+      toast.success('Submitted');
+      setSubmitting(null);
+      reload();
+    } catch (err) {
+      setFormError(errorMessage(err));
+    } finally {
+      setBusy(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <textarea
-        value={opinion}
-        onChange={handleInputChange}
-        placeholder="Enter your opinion/assignment..."
-        className="w-full p-4 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+    <>
+      <PageHeader
+        title="Assignments"
+        description={assignments ? `${assignments.length} for your class` : null}
       />
-      <button
-        type="submit"
-        className="w-full mt-4 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-200"
-        >
-        Submit
-      </button>
-    </form>
+
+      <Card>
+        {error ? (
+          <ErrorState message={error} onRetry={reload} />
+        ) : loading ? (
+          <SkeletonRows rows={4} cols={3} />
+        ) : assignments.length === 0 ? (
+          <EmptyState
+            icon={FiFileText}
+            title="No assignments"
+            description="Work set for your class will appear here. If you are not in a class yet, ask your administrator to enrol you."
+          />
+        ) : (
+          <ul className="divide-y divide-line">
+            {assignments.map((assignment) => {
+              const due = relativeDeadline(assignment.deadline);
+              const overdue = new Date(assignment.deadline) < new Date();
+              const submission = assignment.submission;
+
+              return (
+                <li key={assignment._id} className="px-5 py-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-medium text-ink">{assignment.title}</p>
+                        {submission?.grade ? (
+                          <Badge tone="success">Graded {submission.grade}</Badge>
+                        ) : submission ? (
+                          <Badge tone="accent">Submitted</Badge>
+                        ) : overdue ? (
+                          <Badge tone="danger">Missed</Badge>
+                        ) : (
+                          <Badge tone={due.tone}>{due.label}</Badge>
+                        )}
+                      </div>
+                      <p className="mt-1 whitespace-pre-line text-sm text-muted">
+                        {assignment.description}
+                      </p>
+                      <p className="mt-1 text-xs text-muted">
+                        {assignment.class?.class} · due {formatDate(assignment.deadline)}
+                        {assignment.teacher?.name ? ` · set by ${assignment.teacher.name}` : ''}
+                      </p>
+                    </div>
+
+                    {!overdue && (
+                      <Button
+                        variant={submission ? 'secondary' : 'primary'}
+                        size="sm"
+                        icon={FiUpload}
+                        onClick={() => openSubmit(assignment)}
+                      >
+                        {submission ? 'Resubmit' : 'Submit'}
+                      </Button>
+                    )}
+                  </div>
+
+                  {submission && (
+                    <div className="mt-3 rounded-md border border-line bg-ground/60 px-3 py-2.5">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted">
+                        Your submission · {formatDateTime(submission.submittedAt)}
+                      </p>
+                      {submission.content && (
+                        <p className="mt-1.5 whitespace-pre-line text-sm text-ink">
+                          {submission.content}
+                        </p>
+                      )}
+                      {submission.fileUrl && (
+                        <a
+                          href={submission.fileUrl}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className="mt-1.5 inline-block text-sm font-medium text-accent hover:underline"
+                        >
+                          Attached link
+                        </a>
+                      )}
+                      {submission.feedback && (
+                        <p className="mt-2 border-t border-line pt-2 text-sm text-muted">
+                          <span className="font-medium text-ink">Feedback:</span>{' '}
+                          {submission.feedback}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Card>
+
+      <Modal
+        open={Boolean(submitting)}
+        onClose={() => setSubmitting(null)}
+        title={submitting?.title || ''}
+        description={
+          submitting?.submission
+            ? 'Resubmitting replaces your previous answer and clears any grade.'
+            : 'Write your answer, attach a link, or both.'
+        }
+      >
+        <form onSubmit={submit} className="space-y-4" noValidate>
+          <Textarea
+            label="Your answer"
+            name="content"
+            rows={6}
+            value={form.content}
+            onChange={(event) => setForm((c) => ({ ...c, content: event.target.value }))}
+          />
+          <Input
+            label="Link to a file"
+            name="fileUrl"
+            type="url"
+            value={form.fileUrl}
+            onChange={(event) => setForm((c) => ({ ...c, fileUrl: event.target.value }))}
+            placeholder="https://drive.google.com/…"
+            hint="Optional — a shared document or drive link"
+          />
+
+          {formError && (
+            <p role="alert" className="rounded-md bg-danger/10 px-3 py-2 text-sm text-danger">
+              {formError}
+            </p>
+          )}
+
+          <div className="flex justify-end gap-2 pt-1">
+            <Button type="button" variant="secondary" onClick={() => setSubmitting(null)}>
+              Cancel
+            </Button>
+            <Button type="submit" loading={busy}>
+              Submit
+            </Button>
+          </div>
+        </form>
+      </Modal>
+    </>
   );
 };
 

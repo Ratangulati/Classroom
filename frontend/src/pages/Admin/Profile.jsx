@@ -1,43 +1,66 @@
-import React, { useState } from 'react';
-import Sidebar from './Sidebar';
-import { FaUserCircle } from 'react-icons/fa';
+import { FiCopy } from 'react-icons/fi';
+import { toast } from 'react-toastify';
+import { useAuth } from '../../context/AuthContext';
+import { PageHeader, Card, CardHeader, CardBody, Avatar, Button, Badge } from '../../components/ui';
 
 const AdminProfile = () => {
-  const [isOpen, setIsOpen] = useState(true);
-  const adminUser = JSON.parse(localStorage.getItem('user')) || {};
-  const { name, email, userId } = adminUser;
+  const { user, school } = useAuth();
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
+  const copyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(school.code);
+      toast.success('School code copied');
+    } catch {
+      toast.error('Could not copy — select it manually');
+    }
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 p-8 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-semibold mb-8">Admin Profile</h1>
-          <div className="bg-white shadow-lg rounded-lg p-8">
-            <div className="flex items-center mb-6">
-              <FaUserCircle className="text-4xl text-indigo-500 mr-4" />
-              <h2 className="text-2xl font-bold">{name}</h2>
+    <>
+      <PageHeader title="Profile" description="Your account and school details" />
+
+      <Card>
+        <CardHeader title="Account" />
+        <CardBody>
+          <div className="flex items-center gap-4">
+            <Avatar name={user?.name} size="lg" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-ink">{user?.name}</p>
+              <p className="truncate text-sm text-muted">{user?.email}</p>
+              <Badge tone="accent" className="mt-1.5">
+                Administrator
+              </Badge>
             </div>
-            <div className="flex items-center mb-4">
-              <p className="font-bold text-gray-700">Email:</p>
-              <p className="ml-2 text-gray-900">{email}</p>
-            </div>
-            <div className="flex items-center mb-4">
-              <p className="font-bold text-gray-700">User ID:</p>
-              <p className="ml-2 text-gray-900">{userId}</p>
-            </div>
-            {/* <div className="mb-5">
-              <span className="font-bold text-gray-700">School:</span>
-              <span className="ml-2 text-gray-900">{school}</span>
-            </div> */}
           </div>
-        </div>
-      </div>
-    </div>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="School"
+          description="Teachers and students need this code to sign in"
+        />
+        <CardBody>
+          <dl className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-muted">Name</dt>
+              <dd className="mt-1 text-sm text-ink">{school?.name}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-muted">Join code</dt>
+              <dd className="mt-1 flex items-center gap-2">
+                <code className="rounded-md border border-line bg-ground px-2 py-1 font-mono text-sm tracking-widest text-ink">
+                  {school?.code}
+                </code>
+                <Button variant="ghost" size="sm" icon={FiCopy} onClick={copyCode}>
+                  Copy
+                </Button>
+              </dd>
+            </div>
+          </dl>
+        </CardBody>
+      </Card>
+    </>
   );
 };
 
