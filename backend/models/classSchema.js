@@ -1,29 +1,48 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-const classSchema = new mongoose.Schema({
-  class: {
-    type: String,
-    required: true,
-  },
-  students: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Student',
-  }],
-  teachers: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Teacher',
-  }],
-  subjects: [{
-    name: {
+const classSchema = new mongoose.Schema(
+  {
+    class: {
       type: String,
-      required: true,
+      required: [true, 'Class name is required'],
+      trim: true,
     },
-    teacher: {
+    school: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Teacher',
+      ref: 'School',
       required: true,
+      index: true,
     },
-  }]
-});
+    students: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Student',
+      },
+    ],
+    teachers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Teacher',
+      },
+    ],
+    subjects: [
+      {
+        name: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        teacher: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Teacher',
+          required: true,
+        },
+      },
+    ],
+  },
+  { timestamps: true }
+);
+
+classSchema.index({ school: 1, class: 1 }, { unique: true });
 
 export const Class = mongoose.model('Class', classSchema);
